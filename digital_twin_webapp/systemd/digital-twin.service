@@ -1,0 +1,27 @@
+[Unit]
+Description=Digital Twin — Serveur API chiffré
+Documentation=https://github.com/ton-repo/digital-twin
+After=network.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=digitaltwin
+Group=digitaltwin
+# 1. MODIF : On travaille depuis la racine, pas depuis /backend
+WorkingDirectory=/opt/digital-twin
+
+# 2. MODIF : On lance l'app en tant que module depuis la racine et sur 0.0.0.0
+ExecStart=/opt/digital-twin/venv/bin/python3 -m uvicorn backend.app:app \
+    --host 0.0.0.0 \
+    --port 8000 \
+    --log-level info \
+    --access-log \
+    --no-server-header
+
+# Variables d'environnement
+Environment="DATA_DIR=/opt/digital-twin/data"
+Environment="PUBLIC_KEY_PATH=/opt/digital-twin/keys/public.pem"
+Environment="PORT=8000"
+
+# (Garde le reste de tes règles de sécurité ProtectSystem, ReadWritePaths, etc. intactes)

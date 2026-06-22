@@ -1,0 +1,55 @@
+reasoning_id: "rsn_YYYYMMDD_NNN"
+version: 1
+date: "YYYY-MM-DD"
+timestamp: "YYYY-MM-DDTHH:MM:SS"
+type: ""
+domaine: ""
+sous_domaine: ""
+importance: 0
+urgence: 0
+temps_passe_minutes: 0
+probleme: ""
+objectif: ""
+contexte: ""
+enjeux: ""
+contraintes: []
+ressources_disponibles: []
+faits_connus: []
+hypotheses: []
+options:
+  - id: "opt_A"
+    description: ""
+    avantages: []
+    inconvenients: []
+    risques: []
+    probabilite_succes_estimee: 0.0
+    reversible: true
+  - id: "opt_B"
+    description: ""
+    avantages: []
+    inconvenients: []
+    risques: []
+    probabilite_succes_estimee: 0.0
+    reversible: true
+criteres_utilises: []
+heuristiques_appliquees: []
+modeles_mentaux_appliques: []
+option_choisie: ""
+justification: ""
+ce_qui_aurait_pu_changer_ma_decision: ""
+confiance_avant: 0.0
+resultats_anticipes: []
+suivi:
+  date_suivi: null
+  resultat_effectif: ""
+  confiance_apres: 0.0
+  qualite_du_raisonnement: 0
+  lecon: ""
+links:
+  daily_state: "YYYY-MM-DD"
+  events: []
+  belief_updates: []
+  knowledge_nodes: []
+  persons: []
+  projects: []
+  predictions: []

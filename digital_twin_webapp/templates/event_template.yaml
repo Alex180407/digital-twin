@@ -1,0 +1,40 @@
+event_id: "evt_YYYYMMDD_NNN"
+version: 1
+timestamp: "YYYY-MM-DDTHH:MM:SS"
+date: "YYYY-MM-DD"
+domaine: ""
+sous_domaine: ""
+type: ""
+importance: 0
+urgence_au_moment: 0
+titre: ""
+description: ""
+contexte: ""
+ressenti_immediat: ""
+personnes: []
+lieu: ""
+lieu_type: ""
+impact:
+  emotionnel: 0
+  pratique: ""
+  sur_projets: []
+  sur_relations: []
+  sur_croyances: ""
+  sur_connaissances: []
+consequences:
+  immediates: []
+  anticipees: []
+  effectivement_realisees: []
+decision_necessaire: false
+decision_id: null
+lecon: ""
+aurait_pu_mieux_faire: ""
+a_refaire_pareil: null
+links:
+  daily_state: "YYYY-MM-DD"
+  reasonings: []
+  belief_updates: []
+  knowledge_nodes: []
+  persons: []
+  projects: []
+  predictions: []

@@ -1,0 +1,66 @@
+date: "DATE_PLACEHOLDER"
+heure_saisie: "TIME_PLACEHOLDER"
+
+sommeil:
+  heures: 0.0
+  qualite: 0
+  heure_coucher: ""
+  heure_lever: ""
+  reveils_nocturnes: 0
+  notes: ""
+
+physique:
+  energie: 0
+  forme: 0
+  symptomes: []
+  sport_fait: false
+  sport_detail: ""
+  alcool: false
+  alcool_quantite: ""
+  alimentation: ""
+
+mental:
+  humeur: 0
+  stress: 0
+  anxiete: 0
+  motivation: 0
+  concentration: 0
+  emotion_dominante: ""
+  notes_mental: ""
+
+journee:
+  focus_du_jour: []
+  productivite: 0
+  satisfaction_globale: 0
+  temps_travail_heures: 0.0
+  temps_projet_perso_heures: 0.0
+  accomplissements: []
+  frustrations: []
+  surprises: []
+  interactions_sociales:
+    niveau: 0
+    notable: ""
+
+contexte:
+  meteo_impact: false
+  evenement_exterieur: ""
+
+note_libre: ""
+
+flags:
+  has_event: false
+  has_reasoning: false
+  has_belief_update: false
+  has_knowledge_update: false
+  has_prediction: false
+  has_project_update: false
+  has_relationship_update: false
+
+links:
+  events: []
+  reasonings: []
+  belief_updates: []
+  knowledge_nodes_updated: []
+  predictions: []
+  projects_updated: []
+  relationship_updates: []

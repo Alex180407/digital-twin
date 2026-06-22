@@ -1,0 +1,2406 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Digital Twin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ═══ RESET ══════════════════════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+/* ═══ VARIABLES ══════════════════════════════════════════════════════════ */
+:root{
+  --bg:#07070f;
+  --s1:rgba(12,12,22,.95);
+  --s2:rgba(18,18,30,.8);
+  --s3:rgba(26,26,42,.9);
+  --s4:#1e1e32;
+  --bdr:rgba(255,255,255,.07);
+  --bdr2:rgba(255,255,255,.12);
+  --acc:#6c63ff;--acc2:#9d97ff;--acc3:#3b35cc;
+  --acg:rgba(108,99,255,.13);
+  --red:#f87171;--ylw:#fbbf24;--grn:#34d399;--cyan:#22d3ee;
+  --txt:#e8e8f8;--t2:#8888b0;--t3:#44445e;
+  --ui:'Inter',-apple-system,sans-serif;
+  --mono:'JetBrains Mono','Fira Code',monospace;
+  --sw:252px;--r:14px;--r2:9px;--r3:6px;
+  --blur:blur(24px);--ez:cubic-bezier(.4,0,.2,1);
+  --sh:0 2px 20px rgba(0,0,0,.5);--sh2:0 8px 48px rgba(0,0,0,.8);
+}
+
+/* ═══ BASE ═══════════════════════════════════════════════════════════════ */
+body{
+  font-family:var(--ui);background:var(--bg);
+  background-image:radial-gradient(circle,rgba(108,99,255,.06) 1px,transparent 1px);
+  background-size:28px 28px;
+  color:var(--txt);display:flex;min-height:100vh;font-size:14px;line-height:1.55;
+  overflow-x:hidden;
+}
+
+/* ═══ SIDEBAR ════════════════════════════════════════════════════════════ */
+#sb{
+  width:var(--sw);background:var(--s1);backdrop-filter:var(--blur);
+  -webkit-backdrop-filter:var(--blur);
+  border-right:1px solid var(--bdr);
+  display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;
+  z-index:200;overflow-y:auto;scrollbar-width:none;
+}
+#sb::-webkit-scrollbar{display:none}
+.sb-logo{padding:22px 18px 14px;border-bottom:1px solid var(--bdr)}
+.sb-logo h1{
+  font-size:16px;font-weight:700;letter-spacing:.5px;
+  background:linear-gradient(135deg,#c4b5fd,#6c63ff,#22d3ee);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.sb-logo p{font-size:10px;color:var(--t3);margin-top:2px;font-family:var(--mono)}
+.sb-sec{
+  padding:14px 14px 4px;font-size:9px;font-weight:700;
+  letter-spacing:1.5px;text-transform:uppercase;color:var(--t3);
+}
+.ni{
+  display:flex;align-items:center;gap:9px;padding:9px 14px;margin:1px 8px;
+  border-radius:var(--r2);cursor:pointer;color:var(--t2);font-size:12.5px;font-weight:500;
+  transition:all .14s var(--ez);border:1px solid transparent;user-select:none;
+  position:relative;
+}
+.ni:hover{background:rgba(255,255,255,.04);color:var(--txt)}
+.ni.on{background:var(--acg);color:var(--acc2);border-color:rgba(108,99,255,.25)}
+.ni.on::before{
+  content:'';position:absolute;left:-8px;top:50%;transform:translateY(-50%);
+  width:3px;height:60%;background:var(--acc);border-radius:2px;
+}
+.ni .ic{font-size:14px;flex-shrink:0;width:18px;text-align:center}
+.ni .dot{width:5px;height:5px;border-radius:50%;background:var(--grn);
+  margin-left:auto;flex-shrink:0;box-shadow:0 0 6px var(--grn)}
+.ni .delta-tag{
+  margin-left:auto;font-size:9px;font-family:var(--mono);
+  color:var(--cyan);opacity:.7;letter-spacing:.5px;
+}
+.sb-foot{margin-top:auto;padding:12px 16px;border-top:1px solid var(--bdr)}
+.sb-foot h4{font-size:9px;font-weight:700;color:var(--t3);text-transform:uppercase;
+  letter-spacing:1px;margin-bottom:8px}
+.sr{display:flex;justify-content:space-between;padding:2px 0}
+.sr span{font-size:11px;color:var(--t2)}
+.sr strong{font-size:11px;font-weight:600;color:var(--txt);font-family:var(--mono)}
+
+/* ═══ MAIN ═══════════════════════════════════════════════════════════════ */
+#main{margin-left:var(--sw);flex:1;min-height:100vh;display:flex;flex-direction:column}
+#hd{
+  background:var(--s1);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+  border-bottom:1px solid var(--bdr);padding:13px 26px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;
+}
+#hd-t{font-size:15px;font-weight:700;letter-spacing:-.2px}
+#hd-s{font-size:11px;color:var(--t2);margin-top:1px}
+.hd-right{display:flex;align-items:center;gap:16px}
+#zk-badge{
+  font-size:10px;font-weight:700;font-family:var(--mono);
+  color:var(--t3);letter-spacing:.3px;transition:color .4s;
+}
+#draft-ind{
+  font-size:10px;color:var(--t3);opacity:.35;
+  transition:opacity .4s;font-family:var(--mono);
+}
+#hd-d{font-size:11px;color:var(--t3);font-family:var(--mono)}
+#content{padding:22px 26px 40px;max-width:900px;width:100%}
+
+/* ═══ WELCOME ════════════════════════════════════════════════════════════ */
+#welcome{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;min-height:calc(100vh - 62px);padding:40px}
+.wl-icon{font-size:52px;margin-bottom:14px;filter:drop-shadow(0 0 20px rgba(108,99,255,.4))}
+#welcome h2{font-size:26px;font-weight:700;letter-spacing:-.4px}
+#welcome p{font-size:13px;color:var(--t2);margin-top:6px;max-width:360px;line-height:1.7}
+.wg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;
+  margin-top:28px;width:100%;max-width:560px}
+.wc{
+  background:var(--s2);backdrop-filter:var(--blur);border:1px solid var(--bdr);
+  border-radius:var(--r);padding:16px 12px;cursor:pointer;
+  transition:all .2s var(--ez);text-align:center;
+}
+.wc:hover{
+  border-color:rgba(108,99,255,.4);background:var(--acg);
+  transform:translateY(-3px);box-shadow:0 10px 28px rgba(108,99,255,.15);
+}
+.wc .wi{font-size:20px;margin-bottom:6px}
+.wc .wl{font-size:12px;font-weight:600;color:var(--txt)}
+.wc .ws{font-size:10px;color:var(--t2);margin-top:2px}
+.wg-hint{font-size:11px;color:var(--t3);margin-top:12px;font-family:var(--mono)}
+
+/* ═══ FORM TRANSITION ════════════════════════════════════════════════════ */
+@keyframes glitch{
+  0%  {opacity:0;transform:translateY(5px) skewX(-1.5deg);clip-path:inset(0 0 96% 0)}
+  20% {clip-path:inset(15% 0 55% 0);transform:translateX(5px) skewX(.8deg);opacity:.6}
+  40% {clip-path:inset(45% 0 25% 0);transform:translateX(-4px)}
+  65% {clip-path:inset(75% 0 5% 0);transform:translateX(3px);opacity:.9}
+  85% {clip-path:inset(0 0 0 0);transform:translateY(0)}
+  100%{clip-path:inset(0 0 0 0);opacity:1;transform:translateY(0)}
+}
+#fc.gl{animation:glitch .18s var(--ez) both}
+
+/* ═══ CARDS ══════════════════════════════════════════════════════════════ */
+.card{
+  background:var(--s2);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+  border:1px solid var(--bdr);border-radius:var(--r);margin-bottom:14px;overflow:hidden;
+}
+.card-hd{padding:13px 18px 10px;border-bottom:1px solid var(--bdr);
+  display:flex;align-items:center;gap:10px}
+.card-hd .ci{font-size:15px;flex-shrink:0}
+.card-hd h3{font-size:13px;font-weight:700}
+.card-hd .cs{font-size:10px;color:var(--t3);margin-top:1px}
+.card-body{padding:16px 18px}
+
+/* Genesis / Delta badge */
+.ev-badge{
+  margin-left:auto;font-size:9px;font-family:var(--mono);font-weight:600;
+  padding:2px 8px;border-radius:4px;letter-spacing:.6px;
+}
+.ev-badge.genesis{background:rgba(34,211,238,.1);color:var(--cyan);border:1px solid rgba(34,211,238,.2)}
+.ev-badge.delta  {background:rgba(108,99,255,.1);color:var(--acc2);border:1px solid rgba(108,99,255,.2)}
+
+/* ═══ ACCORDION ══════════════════════════════════════════════════════════ */
+.acc-t{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 18px;cursor:pointer;border-top:1px solid var(--bdr);
+  color:var(--t3);font-size:10px;font-weight:700;user-select:none;
+  transition:color .15s;text-transform:uppercase;letter-spacing:.6px;
+}
+.acc-t:hover{color:var(--t2)}.acc-t.open{color:var(--acc2)}
+.acc-arr{font-size:11px;transition:transform .25s var(--ez)}
+.acc-t.open .acc-arr{transform:rotate(180deg)}
+.acc-b{display:grid;grid-template-rows:0fr;transition:grid-template-rows .28s var(--ez);padding:0 18px}
+.acc-b.open{grid-template-rows:1fr}
+.acc-i{overflow:hidden;min-height:0}
+.acc-b.open .acc-i{padding-top:14px;padding-bottom:16px}
+
+/* ═══ GRID ════════════════════════════════════════════════════════════════ */
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fg.g1{grid-template-columns:1fr}.fg.g3{grid-template-columns:1fr 1fr 1fr}
+.full{grid-column:1/-1}
+
+/* ═══ FIELDS ══════════════════════════════════════════════════════════════ */
+.f{display:flex;flex-direction:column;gap:5px;position:relative}
+.f label{
+  font-size:10px;font-weight:700;color:var(--t2);
+  text-transform:uppercase;letter-spacing:.6px;
+}
+.req{color:var(--acc2);font-style:normal}
+
+/* ═══ INPUTS ══════════════════════════════════════════════════════════════ */
+input[type=text],input[type=number],input[type=date],
+input[type=time],select,textarea{
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--bdr2);border-radius:var(--r2);
+  color:var(--txt);padding:8px 11px;font-size:13px;width:100%;
+  outline:none;font-family:var(--ui);
+  transition:border-color .15s,box-shadow .15s,background .15s;
+}
+input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,
+input[type=time]:focus,select:focus,textarea:focus{
+  border-color:var(--acc);background:rgba(108,99,255,.06);
+  box-shadow:0 0 0 3px rgba(108,99,255,.12),0 0 20px rgba(108,99,255,.08);
+}
+/* Aura électromagnétique sur focus (Phase esthétique) */
+input[type=text]:focus,textarea:focus{
+  box-shadow:0 0 0 3px rgba(108,99,255,.12),0 0 20px rgba(108,99,255,.08),
+             0 0 40px rgba(108,99,255,.04);
+}
+/* Monospace pour les champs de données */
+input[type=date],input[type=time]{font-family:var(--mono);font-size:12px}
+.mono-field{font-family:var(--mono)!important;font-size:12px!important}
+textarea{resize:vertical;min-height:66px}
+textarea:focus{min-height:100px;transition:min-height .2s var(--ez),
+  border-color .15s,box-shadow .15s,background .15s}
+select{
+  cursor:pointer;appearance:none;padding-right:28px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2344445e' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center;
+}
+input[type=number]::-webkit-inner-spin-button{opacity:.3}
+
+/* ═══ SLIDER (color-coded) ════════════════════════════════════════════════ */
+.sl-w{display:flex;align-items:center;gap:10px}
+.sl-t{
+  flex:1;-webkit-appearance:none;appearance:none;
+  height:4px;border-radius:2px;outline:none;cursor:pointer;border:none;padding:0;
+  background:linear-gradient(to right,
+    var(--tc,var(--acc)) 0%,var(--tc,var(--acc)) var(--p,50%),
+    rgba(255,255,255,.08) var(--p,50%));
+  transition:background .08s;
+}
+.sl-t::-webkit-slider-thumb{
+  -webkit-appearance:none;width:18px;height:18px;border-radius:50%;
+  background:var(--bg);border:3px solid var(--tc,var(--acc));
+  box-shadow:0 2px 8px rgba(0,0,0,.4),0 0 0 2px rgba(108,99,255,.2);
+  cursor:pointer;transition:transform .12s,box-shadow .12s;
+}
+.sl-t::-webkit-slider-thumb:hover{
+  transform:scale(1.2);
+  box-shadow:0 2px 12px rgba(0,0,0,.4),0 0 0 4px rgba(108,99,255,.15);
+}
+.sl-t::-moz-range-thumb{
+  width:18px;height:18px;border-radius:50%;background:var(--bg);
+  border:3px solid var(--tc,var(--acc));cursor:pointer;
+}
+.sl-v{
+  min-width:38px;text-align:center;font-size:13px;font-weight:700;
+  font-family:var(--mono);color:var(--acc2);
+  background:var(--acg);border-radius:6px;padding:2px 7px;
+  border:1px solid rgba(108,99,255,.2);
+  transition:color .15s,border-color .15s,background .15s;
+}
+.sl-lb{display:flex;justify-content:space-between;margin-top:2px}
+.sl-lb span{font-size:9px;color:var(--t3);font-family:var(--mono)}
+
+/* ═══ TOGGLE ══════════════════════════════════════════════════════════════ */
+.tg-w{display:flex;align-items:center;gap:10px}
+.tg{position:relative;width:42px;height:24px;cursor:pointer;flex-shrink:0}
+.tg input{opacity:0;width:0;height:0}
+.tg-s{
+  position:absolute;inset:0;background:rgba(255,255,255,.07);
+  border-radius:24px;border:1px solid var(--bdr2);transition:all .2s var(--ez);
+}
+.tg-s::before{
+  content:'';position:absolute;width:18px;height:18px;
+  left:2px;top:50%;transform:translateY(-50%);
+  background:var(--t3);border-radius:50%;transition:all .2s var(--ez);
+}
+.tg input:checked+.tg-s{background:var(--acc);border-color:var(--acc);
+  box-shadow:0 0 12px rgba(108,99,255,.3)}
+.tg input:checked+.tg-s::before{transform:translate(18px,-50%);background:white}
+.tg-l{font-size:13px;color:var(--t2)}
+
+/* ═══ TAG INPUT ════════════════════════════════════════════════════════════ */
+.ti-w{
+  display:flex;flex-wrap:wrap;gap:5px;min-height:38px;
+  background:rgba(255,255,255,.04);border:1px solid var(--bdr2);
+  border-radius:var(--r2);padding:5px 8px;align-items:center;cursor:text;
+  transition:border-color .15s,box-shadow .15s;
+}
+.ti-w:focus-within{
+  border-color:var(--acc);background:rgba(108,99,255,.06);
+  box-shadow:0 0 0 3px rgba(108,99,255,.12);
+}
+.tag{
+  background:rgba(108,99,255,.18);color:var(--acc2);padding:2px 8px 2px 9px;
+  border-radius:5px;font-size:11px;font-family:var(--mono);
+  display:flex;align-items:center;gap:4px;border:1px solid rgba(108,99,255,.25);
+  animation:tgIn .12s var(--ez);
+}
+@keyframes tgIn{from{opacity:0;transform:scale(.82)}to{opacity:1;transform:scale(1)}}
+.tag button{background:none;border:none;cursor:pointer;color:var(--acc2);
+  font-size:14px;line-height:1;padding:0;opacity:.6;transition:opacity .1s}
+.tag button:hover{opacity:1;color:var(--red)}
+.ti-inp{border:none;background:none;outline:none;color:var(--txt);
+  font-size:12px;font-family:var(--mono);min-width:80px;flex:1}
+
+/* ═══ DYNLIST ═════════════════════════════════════════════════════════════ */
+.dl-i{display:flex;gap:7px;align-items:flex-start;margin-bottom:7px;animation:tgIn .12s var(--ez)}
+.dl-i input,.dl-i textarea{flex:1}
+.btn-rm{
+  background:rgba(255,255,255,.04);border:1px solid var(--bdr);color:var(--t3);
+  border-radius:var(--r3);padding:7px 9px;cursor:pointer;flex-shrink:0;
+  transition:all .15s;font-size:13px;line-height:1;
+}
+.btn-rm:hover{border-color:var(--red);color:var(--red);background:rgba(248,113,113,.06)}
+.btn-add{
+  background:none;border:1px dashed rgba(255,255,255,.1);color:var(--t2);
+  border-radius:var(--r3);padding:7px 14px;cursor:pointer;width:100%;
+  font-size:11px;font-family:var(--ui);transition:all .15s;margin-top:3px;
+  display:flex;align-items:center;justify-content:center;gap:5px;
+}
+.btn-add:hover{border-color:var(--acc);color:var(--acc2);background:var(--acg)}
+
+/* ═══ AUTOCOMPLETE ════════════════════════════════════════════════════════ */
+.ac-wrap{position:relative}
+.ac-drop{
+  position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:500;
+  background:var(--s4);border:1px solid var(--acc);border-radius:var(--r2);
+  box-shadow:var(--sh2);max-height:200px;overflow-y:auto;
+  animation:tgIn .1s var(--ez);
+}
+.ac-drop.hidden{display:none}
+.ac-item{
+  padding:8px 12px;cursor:pointer;font-size:12px;font-family:var(--mono);
+  color:var(--acc2);border-bottom:1px solid rgba(255,255,255,.05);
+  transition:background .1s;
+}
+.ac-item:last-child{border-bottom:none}
+.ac-item:hover{background:var(--acg)}
+.ac-new{color:var(--cyan)!important}
+
+/* OPT BLOCK */
+.opt-b{
+  background:rgba(255,255,255,.03);border:1px solid var(--bdr);
+  border-radius:var(--r2);padding:14px;margin-bottom:10px;
+}
+.opt-l{font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.7px;color:var(--acc2);margin-bottom:10px;font-family:var(--mono)}
+
+/* DIV LABELS (avant/après) */
+.dv-l{
+  display:flex;align-items:center;gap:10px;margin:14px 0;
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;
+  font-family:var(--mono);
+}
+.dv-l::before,.dv-l::after{content:'';flex:1;height:1px}
+.dv-l.past{color:var(--t3)}
+.dv-l.past::before,.dv-l.past::after{background:var(--t3)}
+.dv-l.now{color:var(--acc2)}
+.dv-l.now::before,.dv-l.now::after{background:var(--acc)}
+.dv-l.neutral{color:var(--t2)}
+.dv-l.neutral::before,.dv-l.neutral::after{background:rgba(255,255,255,.1)}
+
+/* Past block (grisé) */
+.past-block{opacity:.55;filter:grayscale(20%);border-left:2px solid var(--t3);padding-left:10px}
+/* Now block (vivant) */
+.now-block{border-left:2px solid var(--acc);padding-left:10px;
+  background:rgba(108,99,255,.03);border-radius:0 var(--r3) var(--r3) 0}
+
+/* ═══ BUTTON ══════════════════════════════════════════════════════════════ */
+.btn{
+  display:inline-flex;align-items:center;gap:8px;padding:10px 22px;
+  border-radius:var(--r2);font-size:13px;font-weight:600;cursor:pointer;
+  border:none;font-family:var(--ui);transition:all .15s var(--ez);
+}
+.btn-p{
+  background:linear-gradient(135deg,var(--acc),var(--acc3));color:white;
+  box-shadow:0 4px 16px rgba(108,99,255,.3);
+}
+.btn-p:hover{
+  background:linear-gradient(135deg,var(--acc2),var(--acc));
+  transform:translateY(-1px);box-shadow:0 6px 24px rgba(108,99,255,.4);
+}
+.btn-p:active{transform:translateY(0)}
+.btn-p:disabled{opacity:.35;cursor:not-allowed;transform:none;box-shadow:none}
+/* Encryption animation */
+.btn-p.saving{
+  background:linear-gradient(135deg,#22d3ee,#6c63ff,#34d399);
+  background-size:200% 200%;
+  animation:saveAnim .8s linear infinite;
+}
+@keyframes saveAnim{
+  0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}
+}
+.ff{display:flex;align-items:center;gap:12px;padding:20px 0 6px}
+.fh{font-size:10px;color:var(--t3);font-family:var(--mono)}
+hr{border:none;border-top:1px solid var(--bdr);margin:14px 0}
+
+/* ═══ COMMAND PALETTE ═════════════════════════════════════════════════════ */
+#pal{
+  position:fixed;inset:0;z-index:1000;display:flex;align-items:flex-start;
+  justify-content:center;padding-top:12vh;
+}
+#pal.hidden{display:none}
+.pal-bg{position:absolute;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px)}
+.pal-box{
+  position:relative;z-index:1;width:100%;max-width:580px;margin:0 16px;
+  background:var(--s3);border:1px solid rgba(108,99,255,.4);border-radius:var(--r);
+  box-shadow:0 24px 64px rgba(0,0,0,.9),0 0 0 1px rgba(108,99,255,.1);
+  animation:palIn .15s var(--ez);
+}
+@keyframes palIn{from{opacity:0;transform:translateY(-12px) scale(.97)}to{opacity:1;transform:none}}
+.pal-search{
+  display:flex;align-items:center;gap:10px;padding:14px 16px;
+  border-bottom:1px solid var(--bdr);
+}
+.pal-ic{font-size:16px;flex-shrink:0;opacity:.5}
+#pal-inp{
+  flex:1;background:none;border:none;outline:none;font-size:15px;
+  font-family:var(--ui);color:var(--txt);
+}
+.pal-hint{font-size:10px;color:var(--t3);font-family:var(--mono);white-space:nowrap}
+.pal-results{max-height:340px;overflow-y:auto;padding:6px}
+.pal-item{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;
+  border-radius:var(--r2);cursor:pointer;transition:background .1s;
+}
+.pal-item:hover,.pal-item.sel{background:var(--acg)}
+.pal-ic2{font-size:16px;flex-shrink:0}
+.pal-t{font-size:13px;font-weight:600;color:var(--txt)}
+.pal-s{font-size:11px;color:var(--t2);margin-left:auto;white-space:nowrap}
+.pal-cat{
+  padding:6px 12px 3px;font-size:9px;font-weight:700;color:var(--t3);
+  text-transform:uppercase;letter-spacing:1px;
+}
+
+/* ═══ TOAST ════════════════════════════════════════════════════════════════ */
+#toasts{position:fixed;top:18px;right:18px;z-index:9999;
+  display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{
+  padding:11px 16px;border-radius:var(--r);font-size:12.5px;font-weight:500;
+  box-shadow:var(--sh2);display:flex;align-items:center;gap:10px;
+  max-width:360px;pointer-events:all;animation:tIn .2s var(--ez);backdrop-filter:var(--blur);
+}
+@keyframes tIn{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes tOut{from{transform:translateX(0);opacity:1}to{transform:translateX(110%);opacity:0}}
+.toast.ok{background:rgba(5,46,22,.9);color:#bbf7d0;border:1px solid rgba(52,211,153,.4)}
+.toast.err{background:rgba(45,7,7,.9);color:#fecaca;border:1px solid rgba(248,113,113,.4)}
+.toast.inf{background:rgba(12,10,62,.9);color:#c7d2fe;border:1px solid rgba(108,99,255,.4)}
+.spin{width:15px;height:15px;flex-shrink:0;border:2px solid rgba(255,255,255,.2);
+  border-top-color:white;border-radius:50%;animation:rot .6s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+
+/* ═══ MOBILE NAV ═══════════════════════════════════════════════════════════ */
+#bn{display:none}
+@media(max-width:680px){
+  #sb{display:none}
+  #main{margin-left:0}
+  #content{padding:14px 14px 100px}
+  #bn{
+    display:flex;position:fixed;bottom:0;left:0;right:0;
+    background:var(--s1);backdrop-filter:var(--blur);border-top:1px solid var(--bdr);
+    z-index:200;overflow-x:auto;padding:6px 4px;gap:2px;scrollbar-width:none;
+  }
+  #bn::-webkit-scrollbar{display:none}
+  .bn-i{
+    display:flex;flex-direction:column;align-items:center;padding:7px 12px;
+    border-radius:var(--r2);cursor:pointer;flex-shrink:0;min-width:58px;
+    transition:all .15s;color:var(--t2);
+  }
+  .bn-i.on{background:var(--acg);color:var(--acc2)}
+  .bn-i .ic{font-size:18px}
+  .bn-i .lb{font-size:9px;margin-top:3px;white-space:nowrap;font-weight:600}
+  .wg{grid-template-columns:repeat(2,1fr)}
+}
+
+/* ═══ UTILS ════════════════════════════════════════════════════════════════ */
+.hidden{display:none!important}
+.mt{margin-top:12px}.mt2{margin-top:8px}
+
+/* ══ REMIND BOX (zones "avant" non uploadées) ══ */
+.remind-box{background:rgba(255,255,255,.025);border:1px dashed rgba(255,255,255,.08);
+  border-left:3px solid var(--t3);border-radius:var(--r2);padding:12px 14px;margin-bottom:14px}
+.remind-hd{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;
+  letter-spacing:.8px;font-family:var(--mono);margin-bottom:9px;
+  display:flex;align-items:center;gap:7px}
+.remind-chips{display:flex;flex-wrap:wrap;gap:6px}
+.remind-chip{font-size:11px;color:var(--t3);background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.07);border-radius:5px;padding:3px 9px}
+.remind-note{font-size:10px;color:var(--t3);margin-top:9px;font-family:var(--mono);opacity:.6}
+
+/* ══ SAVE OVERLAY ══ */
+#save-ov{position:fixed;inset:0;z-index:900;display:flex;align-items:center;justify-content:center}
+.sv-bg{position:absolute;inset:0;background:rgba(7,7,15,.85);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.sv-box{position:relative;z-index:1;background:var(--s2);
+  border:1px solid rgba(108,99,255,.4);border-radius:var(--r);
+  padding:38px 60px;text-align:center;
+  box-shadow:0 0 80px rgba(108,99,255,.22),var(--sh2);
+  animation:svIn .22s var(--ez)}
+@keyframes svIn{from{opacity:0;transform:scale(.88) translateY(14px)}to{opacity:1;transform:none}}
+.sv-icon{font-size:38px;margin-bottom:14px;
+  animation:svPulse 1.2s ease-in-out infinite}
+@keyframes svPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+.sv-txt{font-size:13px;font-weight:600;color:var(--txt);font-family:var(--mono);letter-spacing:.3px}
+.sv-bar-wrap{width:220px;height:3px;background:rgba(255,255,255,.08);
+  border-radius:2px;margin:16px auto 0;overflow:hidden}
+#sv-bar{height:100%;border-radius:2px;
+  background:linear-gradient(90deg,var(--acc),var(--cyan));
+  transition:width .45s var(--ez);width:0%}
+.sv-algo{font-size:9px;color:var(--t3);margin-top:11px;font-family:var(--mono);letter-spacing:.4px}
+.sv-box.sv-ok{border-color:rgba(52,211,153,.5);
+  box-shadow:0 0 80px rgba(52,211,153,.18),var(--sh2)}
+.sv-box.sv-ok .sv-icon{animation:none}
+
+/* ══ ID DISPLAY FIELD ══ */
+.id-disp{color:var(--cyan)!important;background:rgba(34,211,238,.06)!important;
+  border-color:rgba(34,211,238,.25)!important;cursor:default}
+.id-disp.collision{color:var(--red)!important;background:rgba(248,113,113,.08)!important;
+  border-color:var(--red)!important}
+
+/* ══ TAG INPUT WITH AUTOCOMPLETE (TIA) ══ */
+.tia-wrap{position:relative}
+
+/* ══ PERSON ID READONLY ══ */
+.person-id-field{pointer-events:none;opacity:.85}
+
+/* ══ SPOTLIGHT SOURIS ══════════════════════════════════════════════════════ */
+:root{--mx:50%;--my:50%}
+body::before{
+  content:'';position:fixed;inset:0;
+  background:radial-gradient(900px circle at var(--mx) var(--my),
+    rgba(108,99,255,.065) 0%,rgba(34,211,238,.02) 40%,transparent 70%);
+  pointer-events:none;z-index:0;
+}
+
+/* ══ SCROLLBAR ══════════════════════════════════════════════════════════════ */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(108,99,255,.35);border-radius:2px}
+::-webkit-scrollbar-thumb:hover{background:var(--acc)}
+*{scrollbar-width:thin;scrollbar-color:rgba(108,99,255,.3) transparent}
+
+/* ══ SKIP LINK (accessibilite clavier) ══════════════════════════════════════ */
+.skip-link{
+  position:fixed;top:-60px;left:16px;z-index:10000;
+  background:var(--acc);color:white;padding:11px 20px;border-radius:var(--r2);
+  font-weight:700;font-size:13px;text-decoration:none;
+  box-shadow:var(--sh2);transition:top .22s var(--ez);
+}
+.skip-link:focus{top:16px;outline:2px solid white;outline-offset:3px}
+
+/* ══ LOGO SHIMMER ═══════════════════════════════════════════════════════════ */
+.sb-logo h1{
+  background:linear-gradient(110deg,#c4b5fd 0%,#6c63ff 30%,#22d3ee 55%,#6c63ff 75%,#c4b5fd 100%);
+  background-size:300% 100%;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  animation:shimmer 5s ease-in-out infinite;
+}
+@keyframes shimmer{0%,100%{background-position:100% 0}50%{background-position:0% 0}}
+
+/* ══ NAV ITEM ACTIVE GLOW ═══════════════════════════════════════════════════ */
+.ni.on{box-shadow:0 0 14px rgba(108,99,255,.14),inset 0 0 0 1px rgba(108,99,255,.25)}
+.ni.on::before{
+  box-shadow:0 0 8px rgba(108,99,255,.8),0 0 16px rgba(108,99,255,.4);
+}
+.ni{position:relative;overflow:hidden}
+.ni::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.03),transparent);
+  transform:translateX(-100%);transition:transform .4s var(--ez);pointer-events:none;
+}
+.ni:hover::after{transform:translateX(100%)}
+
+/* ══ CARD HOVER DEPTH ═══════════════════════════════════════════════════════ */
+.card{will-change:transform;transition:
+  transform .25s var(--ez),border-color .25s,box-shadow .25s}
+.card:hover{
+  border-color:rgba(108,99,255,.2);
+  box-shadow:0 8px 40px rgba(108,99,255,.1),
+             0 1px 0 rgba(255,255,255,.07) inset,
+             var(--sh);
+}
+
+/* ══ STAGGER WELCOME CARDS ══════════════════════════════════════════════════ */
+@keyframes cardIn{
+  from{opacity:0;transform:translateY(14px) scale(.97)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+.wc{animation:cardIn .38s var(--ez) both}
+.wc:nth-child(1){animation-delay:.04s}.wc:nth-child(2){animation-delay:.09s}
+.wc:nth-child(3){animation-delay:.14s}.wc:nth-child(4){animation-delay:.19s}
+.wc:nth-child(5){animation-delay:.24s}.wc:nth-child(6){animation-delay:.29s}
+.wc:nth-child(7){animation-delay:.34s}.wc:nth-child(8){animation-delay:.39s}
+.wc:nth-child(9){animation-delay:.44s}
+
+/* ══ FOCUS RING ═════════════════════════════════════════════════════════════ */
+:focus-visible{
+  outline:2px solid var(--acc);outline-offset:3px;
+  border-radius:var(--r3);
+  box-shadow:0 0 0 4px rgba(108,99,255,.2);
+}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{
+  outline:none; /* géré par les styles existants */
+}
+
+/* ══ SLIDER SPRING THUMB ════════════════════════════════════════════════════ */
+.sl-t::-webkit-slider-thumb{
+  transition:transform .2s cubic-bezier(.34,1.56,.64,1),
+             box-shadow .15s,border-color .15s;
+}
+.sl-t:active::-webkit-slider-thumb{transform:scale(1.35)}
+
+/* ══ FONT FEATURES ══════════════════════════════════════════════════════════ */
+body{font-feature-settings:'cv01','cv02','kern'}
+.mono-field,.sl-v,.sr strong,#sv-algo,#hd-d,#sbdate,.delta-tag,
+.ev-badge,.remind-note,.fh{
+  font-feature-settings:'liga','calt','zero';
+}
+
+/* ══ SAVE OVERLAY MATRIX RAIN ═══════════════════════════════════════════════ */
+#sv-rain{
+  position:absolute;inset:0;border-radius:var(--r);
+  opacity:.08;pointer-events:none;z-index:0;
+}
+.sv-box>*:not(#sv-rain){position:relative;z-index:1}
+.sv-steps{
+  display:flex;flex-direction:column;gap:6px;
+  margin-top:18px;text-align:left;min-width:220px;
+}
+.sv-step{
+  display:flex;align-items:center;gap:8px;
+  font-size:10px;font-family:var(--mono);color:var(--t3);
+  transition:color .3s;
+}
+.sv-step.active{color:var(--acc2)}
+.sv-step.done{color:var(--grn)}
+.sv-step-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--s4);flex-shrink:0;
+  border:1px solid var(--bdr);transition:all .3s;
+}
+.sv-step.active .sv-step-dot{background:var(--acc);border-color:var(--acc);
+  box-shadow:0 0 8px var(--acc)}
+.sv-step.done .sv-step-dot{background:var(--grn);border-color:var(--grn)}
+
+/* ══ SIDEBAR STATS — compteur animé ════════════════════════════════════════ */
+.sr strong{transition:color .3s}
+.sr strong.up{color:var(--grn)}
+
+/* ══ ACCORDÉON — keyboard navigable ════════════════════════════════════════ */
+.acc-t{cursor:pointer}
+.acc-t:focus-visible{
+  outline:2px solid var(--acc);outline-offset:-2px;border-radius:0;
+}
+
+/* ══ TAGS — entrée/sortie ═══════════════════════════════════════════════════ */
+@keyframes tagOut{to{opacity:0;transform:scale(.8)}}
+
+/* ══ BOTTOM NAV TACTILE ═════════════════════════════════════════════════════ */
+@media(max-width:680px){
+  .bn-i{transition:all .12s var(--ez)}
+  .bn-i:active{transform:scale(.9);background:var(--acg)}
+  .bn-i .ic{font-size:21px;display:block;margin-bottom:1px}
+}
+
+/* ══ REDUCED MOTION ═════════════════════════════════════════════════════════ */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:.01ms!important;
+  }
+  body::before,.sb-logo h1,.ni::after{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ SIDEBAR ═══════════════════════════════════════════════════════════ -->
+<a class="skip-link" href="#content">Aller au contenu principal</a>
+<nav id="sb" role="navigation" aria-label="Navigation principale">
+  <div class="sb-logo">
+    <h1>&#10022; DIGITAL TWIN</h1>
+    <p id="sbdate"></p>
+  </div>
+
+  <div class="sb-sec">Journal</div>
+  <div class="ni on" data-f="daily"           onclick="nav(this)"><span class="ic">&#11088;</span>Daily State<span class="dot"></span></div>
+  <div class="ni"    data-f="weekly_review"   onclick="nav(this)"><span class="ic">&#128197;</span>Weekly Review</div>
+  <div class="ni"    data-f="monthly_snapshot"onclick="nav(this)"><span class="ic">&#128248;</span>Snapshot Mensuel</div>
+
+  <div class="sb-sec">Cognition</div>
+  <div class="ni"    data-f="reasoning"           onclick="nav(this)"><span class="ic">&#129513;</span>Raisonnement</div>
+  <div class="ni"    data-f="reasoning_followup"  onclick="nav(this)"><span class="ic">&#128301;</span>Suivi Raisonnement<span class="delta-tag">&#916;</span></div>
+  <div class="ni"    data-f="prediction"          onclick="nav(this)"><span class="ic">&#127919;</span>Prediction</div>
+  <div class="ni"    data-f="prediction_resolution" onclick="nav(this)"><span class="ic">&#127937;</span>Resoudre Prediction<span class="delta-tag">&#916;</span></div>
+  <div class="ni"    data-f="belief"              onclick="nav(this)"><span class="ic">&#128161;</span>Croyance</div>
+  <div class="ni"    data-f="belief_update"       onclick="nav(this)"><span class="ic">&#128260;</span>Update Croyance<span class="delta-tag">&#916;</span></div>
+
+  <div class="sb-sec">Savoir &amp; Evenements</div>
+  <div class="ni"    data-f="knowledge_node" onclick="nav(this)"><span class="ic">&#128218;</span>Connaissance</div>
+  <div class="ni"    data-f="event"          onclick="nav(this)"><span class="ic">&#9889;</span>Evenement</div>
+
+  <div class="sb-sec">Projets</div>
+  <div class="ni"    data-f="project"        onclick="nav(this)"><span class="ic">&#128640;</span>Nouveau Projet</div>
+  <div class="ni"    data-f="project_log"    onclick="nav(this)"><span class="ic">&#128193;</span>Session Projet<span class="delta-tag">&#916;</span></div>
+  <div class="ni"    data-f="project_update" onclick="nav(this)"><span class="ic">&#128295;</span>Statut Projet<span class="delta-tag">&#916;</span></div>
+
+  <div class="sb-sec">Social</div>
+  <div class="ni"    data-f="person"              onclick="nav(this)"><span class="ic">&#129434;</span>Nouvelle Personne</div>
+  <div class="ni"    data-f="relationship_update" onclick="nav(this)"><span class="ic">&#128101;</span>Update Relation<span class="delta-tag">&#916;</span></div>
+
+  <div class="sb-foot">
+    <h4>Event Log (ZK)</h4>
+    <div class="sr"><span>Daily</span><strong id="s0">-</strong></div>
+    <div class="sr"><span>Raisonnements</span><strong id="s1">-</strong></div>
+    <div class="sr"><span>Connaissances</span><strong id="s2">-</strong></div>
+    <div class="sr"><span>Predictions</span><strong id="s3">-</strong></div>
+    <div class="sr"><span>Projets</span><strong id="s4">-</strong></div>
+    <div class="sr"><span>Personnes</span><strong id="s5">-</strong></div>
+  </div>
+</nav>
+
+<!-- ═══ MAIN ═══════════════════════════════════════════════════════════════ -->
+<div id="main" role="main">
+  <div id="hd" role="banner">
+    <div><div id="hd-t">Digital Twin</div><div id="hd-s"></div></div>
+    <div class="hd-right">
+      <div id="draft-ind"></div>
+      <div id="zk-badge">&#128274; init...</div>
+      <div id="hd-d"></div>
+    </div>
+  </div>
+  <div id="content">
+    <div id="welcome" role="region" aria-label="Ecran d'accueil">
+      <div class="wl-icon">&#10022;</div>
+      <h2>Digital Twin</h2>
+      <p>Architecture Zero-Knowledge + Event Sourcing.<br>Ctrl+K pour naviguer.</p>
+      <div class="wg" id="wg"></div>
+      <div class="wg-hint">&#916; = formulaire delta (enrichit une entite existante)</div>
+    </div>
+    <div id="fc" class="hidden" role="region" aria-live="polite" aria-label="Formulaire actif"></div>
+  </div>
+</div>
+
+<!-- ═══ MOBILE BOTTOM NAV ═══════════════════════════════════════════════ -->
+<nav id="bn">
+  <div class="bn-i on" data-f="daily"               onclick="nav(this);bnSet(this)"><span class="ic">&#11088;</span><span class="lb">Daily</span></div>
+  <div class="bn-i"    data-f="weekly_review"        onclick="nav(this);bnSet(this)"><span class="ic">&#128197;</span><span class="lb">Weekly</span></div>
+  <div class="bn-i"    data-f="event"                onclick="nav(this);bnSet(this)"><span class="ic">&#9889;</span><span class="lb">Event</span></div>
+  <div class="bn-i"    data-f="reasoning"            onclick="nav(this);bnSet(this)"><span class="ic">&#129513;</span><span class="lb">Raison.</span></div>
+  <div class="bn-i"    data-f="reasoning_followup"   onclick="nav(this);bnSet(this)"><span class="ic">&#128301;</span><span class="lb">Suivi</span></div>
+  <div class="bn-i"    data-f="prediction"           onclick="nav(this);bnSet(this)"><span class="ic">&#127919;</span><span class="lb">Pred.</span></div>
+  <div class="bn-i"    data-f="belief"               onclick="nav(this);bnSet(this)"><span class="ic">&#128161;</span><span class="lb">Croyance</span></div>
+  <div class="bn-i"    data-f="knowledge_node"       onclick="nav(this);bnSet(this)"><span class="ic">&#128218;</span><span class="lb">Savoir</span></div>
+  <div class="bn-i"    data-f="project_log"          onclick="nav(this);bnSet(this)"><span class="ic">&#128193;</span><span class="lb">Session</span></div>
+  <div class="bn-i"    data-f="project"              onclick="nav(this);bnSet(this)"><span class="ic">&#128640;</span><span class="lb">Projet</span></div>
+  <div class="bn-i"    data-f="person"               onclick="nav(this);bnSet(this)"><span class="ic">&#129434;</span><span class="lb">Personne</span></div>
+  <div class="bn-i"    data-f="monthly_snapshot"     onclick="nav(this);bnSet(this)"><span class="ic">&#128248;</span><span class="lb">Snapshot</span></div>
+  <div class="bn-i"    onclick="palOpen()"><span class="ic">&#8984;</span><span class="lb">Ctrl+K</span></div>
+</nav>
+
+<!-- ═══ COMMAND PALETTE ══════════════════════════════════════════════════ -->
+<div id="pal" class="hidden">
+  <div class="pal-bg" onclick="palClose()"></div>
+  <div class="pal-box">
+    <div class="pal-search">
+      <span class="pal-ic">&#128269;</span>
+      <input id="pal-inp" type="text" placeholder="Formulaire... (ex: daily, raisonnement, projet)"
+             oninput="palFilter(this.value)" onkeydown="palKey(event)">
+      <span class="pal-hint">ESC ferme</span>
+    </div>
+    <div id="pal-results" class="pal-results"></div>
+  </div>
+</div>
+
+
+<div id="save-ov" class="hidden" role="dialog" aria-modal="true" aria-label="Chiffrement en cours">
+  <div class="sv-bg"></div>
+  <div class="sv-box" id="sv-box">
+    <div class="sv-icon" id="sv-icon">&#128273;</div>
+    <div class="sv-txt" id="sv-txt">Initialisation...</div>
+    <div class="sv-bar-wrap"><div id="sv-bar"></div></div>
+    <div class="sv-steps" id="sv-steps">
+      <div class="sv-step" id="svs1"><span class="sv-step-dot"></span>Génération clés session AES-256</div>
+      <div class="sv-step" id="svs2"><span class="sv-step-dot"></span>Chiffrement hybride RSA-4096 + ECDH-P384</div>
+      <div class="sv-step" id="svs3"><span class="sv-step-dot"></span>Double couche AES-256-GCM</div>
+      <div class="sv-step" id="svs4"><span class="sv-step-dot"></span>Transmission Zero-Knowledge</div>
+      <div class="sv-step" id="svs5"><span class="sv-step-dot"></span>Commit validé</div>
+    </div>
+    <div class="sv-algo" id="sv-algo">RSA-4096 + ECDH-P384 + AES-256-GCM &times;2</div>
+  </div>
+</div>
+<div id="toasts" role="alert" aria-live="polite" aria-atomic="false"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════════════════════
+var $ = function(id){ return document.getElementById(id); };
+var now = new Date();
+var pad = function(n){ return String(n).padStart(2,'0'); };
+var TODAY = now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate());
+var TIME  = pad(now.getHours())+':'+pad(now.getMinutes());
+var DAYS  = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+var MTHS  = ['Jan','Fev','Mar','Avr','Mai','Jun','Jul','Aou','Sep','Oct','Nov','Dec'];
+var DSTR  = DAYS[now.getDay()]+' '+now.getDate()+' '+MTHS[now.getMonth()]+' '+now.getFullYear();
+var DOMS  = ['informatique','linux','ia','bridge','mathematiques','famille','amis','travail',
+             'sante','finance','apprentissage','sport','loisirs','philosophie','autre'];
+var EMOTS = ['joie','enthousiasme','calme','curiosite','satisfaction','tristesse',
+             'frustration','colere','anxiete','stress','ennui','fierte','inconfort','neutre'];
+var FREQS = ['quotidien','hebdo','mensuel','rare','jamais'];
+
+$('sbdate').textContent = DSTR;
+$('hd-d').textContent   = DSTR+' \u00b7 '+TIME;
+
+// Phase 1.1 — Génération sémantique d'IDs (slugs lisibles)
+function slugify(text, prefix){
+  if(!text||!text.trim()) return prefix?prefix+'_':'';
+  var s=text.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9\s]/g,'').trim()
+    .replace(/\s+/g,'_').replace(/_+/g,'_').substring(0,40);
+  return (prefix?prefix+'_':'')+s;
+}
+
+// Phase 1.2 — Mise à jour live du slug + anti-collision
+function slugUpdate(titleEl, prefix, cat, dispId){
+  var slug=slugify(titleEl.value, prefix);
+  var disp=$(dispId); if(!disp) return;
+  disp.value=slug;
+  var hidden=document.querySelector('[name="_id"]'); if(hidden) hidden.value=slug;
+  var exists=slug.length>prefix.length+2 && (_reg[cat]||[]).indexOf(slug)>=0;
+  var btn=document.querySelector('.btn-save');
+  if(exists){
+    disp.style.color='var(--red)'; disp.style.borderColor='var(--red)';
+    disp.style.background='rgba(248,113,113,.08)';
+    if(btn) btn.disabled=true;
+    _draftShow('\u26A0 ID d\u00e9j\u00e0 pris : '+slug);
+  }else{
+    disp.style.color='var(--cyan)'; disp.style.borderColor='rgba(34,211,238,.2)';
+    disp.style.background='rgba(34,211,238,.06)';
+    if(btn) btn.disabled=false;
+  }
+}
+
+// Phase 1.3 — Auto-déduction person_id depuis Prénom + Nom
+function personIdSync(){
+  var pr=document.querySelector('[name="prenom"]');
+  var nm=document.querySelector('[name="nom"]');
+  var pid=document.querySelector('[name="person_id"]');
+  if(!pr||!nm||!pid) return;
+  var s='p_'+slugify(pr.value,'')+(nm.value.trim()?'_'+slugify(nm.value,''):'');
+  s=s.replace(/_+/g,'_').replace(/^_|_$/g,'');
+  pid.value=s;
+  var exists=(_reg.persons||[]).indexOf(s)>=0;
+  pid.style.color=exists?'var(--red)':'var(--cyan)';
+  pid.style.borderColor=exists?'var(--red)':'rgba(34,211,238,.2)';
+  pid.style.background=exists?'rgba(248,113,113,.08)':'rgba(34,211,238,.06)';
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// PHASE 4 — Nexus Registry : cache hybride localStorage + sync serveur
+// IDs organisationnels NON sensibles (pas de contenu chiffré exposé)
+// ═══════════════════════════════════════════════════════════════════════
+var _reg = {projects:[],persons:[],concepts:[],reasonings:[],predictions:[],beliefs:[]};
+
+function regLoad(){
+  // 1. Chargement local instantané (fonctionne offline)
+  try{ var r=localStorage.getItem('dt_idreg'); if(r) _reg=Object.assign({projects:[],persons:[],concepts:[],reasonings:[],predictions:[],beliefs:[]},JSON.parse(r)); }catch(e){}
+  // 2. Sync serveur asynchrone (cross-device, silencieuse)
+  fetch('/api/meta/registry').then(function(r){return r.json();})
+  .then(function(data){
+    if(!data.registry) return;
+    Object.keys(data.registry).forEach(function(cat){
+      (data.registry[cat]||[]).forEach(function(id){ regAdd(cat,id,false); });
+    });
+    try{localStorage.setItem('dt_idreg',JSON.stringify(_reg));}catch(e){}
+    var b=$('zk-badge');
+    if(b&&b.style.color==='var(--grn)'){
+      b.title='Registry sync\u00e9 depuis le serveur ('+data.total+' IDs)';
+    }
+    // Mise à jour auto-completes en cours
+    [].slice.call(document.querySelectorAll('.ac-drop:not(.hidden)')).forEach(function(d){d.classList.add('hidden');});
+  }).catch(function(){/* offline - localStorage suffit */});
+}
+// Re-sync quand l'utilisateur revient sur l'onglet (cross-device)
+window.addEventListener('focus',function(){
+  fetch('/api/meta/registry').then(function(r){return r.json();})
+  .then(function(data){
+    if(!data.registry) return;
+    Object.keys(data.registry).forEach(function(cat){
+      (data.registry[cat]||[]).forEach(function(id){regAdd(cat,id,false);});
+    });
+    try{localStorage.setItem('dt_idreg',JSON.stringify(_reg));}catch(e){}
+  }).catch(function(){});
+});
+
+function regAdd(cat,id,persist){
+  if(!id||!_reg[cat]) return;
+  persist=persist===undefined?true:persist;
+  if(_reg[cat].indexOf(id)<0){
+    _reg[cat].push(id);
+    if(persist) try{localStorage.setItem('dt_idreg',JSON.stringify(_reg));}catch(e){}
+  }
+}
+
+function regAll(){
+  var all=[];
+  Object.keys(_reg).forEach(function(k){ all=all.concat(_reg[k]); });
+  return all;
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// AUTOCOMPLETE
+// ═══════════════════════════════════════════════════════════════════════
+var _acIdx=0;
+function ACID(name,label,cat,ph,req){
+  var id='acid'+(_acIdx++);
+  var reqMark=req?'<span class="req"> *</span>':'';
+  return '<div class="f ac-wrap">'
+    +'<label>'+label+reqMark+'</label>'
+    +'<input type="text" id="'+id+'" name="'+name+'" placeholder="'+ph+'"'
+    +' autocomplete="off" class="mono-field"'
+    +' oninput="acidFilter(this,\''+id+'\',\''+cat+'\')"'
+    +' onblur="setTimeout(function(){acidHide(\''+id+'\')},180)">'
+    +'<div class="ac-drop hidden" id="'+id+'_d"></div>'
+    +'</div>';
+}
+function acidFilter(el,id,cat){
+  var q=el.value.toLowerCase();
+  var pool=cat==='all'?regAll():(_reg[cat]||[]);
+  var items=pool.filter(function(x){return x.toLowerCase().indexOf(q)>=0;});
+  var d=$(id+'_d'); if(!d) return;
+  if(!items.length||!q){d.classList.add('hidden');return;}
+  d.innerHTML=items.slice(0,8).map(function(x){
+    return '<div class="ac-item" onmousedown="acidPick(\''+id+'\',\''+x+'\')">'+x+'</div>';
+  }).join('');
+  d.classList.remove('hidden');
+}
+function acidPick(id,val){ $(id).value=val; $(id+'_d').classList.add('hidden'); }
+function acidHide(id){ var d=$(id+'_d'); if(d) d.classList.add('hidden'); }
+
+// ═══════════════════════════════════════════════════════════════════════
+// ZK CRYPTO (Web Crypto API — chiffrement dans le navigateur)
+// ═══════════════════════════════════════════════════════════════════════
+// ═══ ZK CRYPTO v4.1 — RSA-4096 + ECDH-P384 + AES-256-GCM×2 ═════════════
+var _zk={rsaKey:null,ecKey:null,ready:false};
+var _te=new TextEncoder();
+function ab2b64(buf){return btoa(String.fromCharCode.apply(null,new Uint8Array(buf)));}
+function b642ab(b64){return Uint8Array.from(atob(b64),function(c){return c.charCodeAt(0);}).buffer;}
+
+async function zkImportKey(pem){
+  var clean=pem.replace(/-----BEGIN PUBLIC KEY-----|-----END PUBLIC KEY-----|\s/g,'');
+  return await window.crypto.subtle.importKey(
+    'spki',b642ab(clean),{name:'RSA-OAEP',hash:'SHA-256'},false,['encrypt']
+  );
+}
+async function importEcKey(pem){
+  var clean=pem.replace(/-----BEGIN PUBLIC KEY-----|-----END PUBLIC KEY-----|\s/g,'');
+  return await window.crypto.subtle.importKey(
+    'spki',b642ab(clean),{name:'ECDH',namedCurve:'P-384'},true,[]
+  );
+}
+async function zkLoadKeys(){
+  if(_zk.ready) return _zk;
+  // Essayer /api/pubkeys (v4.1), fallback /api/pubkey (legacy)
+  var r=await fetch('/api/pubkeys').catch(function(){return fetch('/api/pubkey');});
+  if(!r.ok) throw new Error('Cles publiques indisponibles');
+  var j=await r.json();
+  _zk.rsaKey=await zkImportKey(j.rsa_pem||j.pem);
+  if(j.ec_pem){
+    try{_zk.ecKey=await importEcKey(j.ec_pem);}catch(e){console.warn('EC key:',e);}
+  }
+  _zk.ready=true;
+  var b=$('zk-badge');
+  var algo=_zk.ecKey?'\uD83D\uDD12 RSA+ECDH+AES\xd72':'\uD83D\uDD12 RSA+AES';
+  if(b){b.textContent=algo;b.style.color='var(--grn)';b.title='Hybrid '+(_zk.ecKey?'RSA-4096+ECDH-P384':'RSA-4096')+' + AES-256-GCM\xd72';}
+  return _zk;
+}
+// Backward compat
+async function zkLoadKey(){return (await zkLoadKeys()).rsaKey;}
+
+// ECDH ephemeral key wrapping (ECIES lite)
+async function ecdhWrapKey(rawAesKey,recipientPub){
+  var C=window.crypto;
+  var eph=await C.subtle.generateKey({name:'ECDH',namedCurve:'P-384'},true,['deriveBits']);
+  var bits=await C.subtle.deriveBits({name:'ECDH',public:recipientPub},eph.privateKey,384);
+  var hkdf=await C.subtle.importKey('raw',bits,{name:'HKDF'},false,['deriveKey']);
+  var wk=await C.subtle.deriveKey(
+    {name:'HKDF',hash:'SHA-384',salt:new Uint8Array(48),
+     info:_te.encode('dt-ecdh-wrap-v1')},
+    hkdf,{name:'AES-GCM',length:256},false,['encrypt']
+  );
+  var wiv=C.getRandomValues(new Uint8Array(12));
+  var wrapped=await C.subtle.encrypt({name:'AES-GCM',iv:wiv},wk,rawAesKey);
+  var ephPub=await C.subtle.exportKey('raw',eph.publicKey);
+  return{eph_pub:ab2b64(ephPub),iv:ab2b64(wiv),ct:ab2b64(wrapped)};
+}
+
+// Hybrid double-layer encryption
+async function zkEncryptHybrid(data){
+  var C=window.crypto;
+  var plain=_te.encode(JSON.stringify(data));
+  // Two independent AES-256 session keys
+  var a1=await C.subtle.generateKey({name:'AES-GCM',length:256},true,['encrypt']);
+  var a2=await C.subtle.generateKey({name:'AES-GCM',length:256},true,['encrypt']);
+  var iv1=C.getRandomValues(new Uint8Array(12));
+  var iv2=C.getRandomValues(new Uint8Array(12));
+  // Inner → outer double encryption
+  var ct1=await C.subtle.encrypt({name:'AES-GCM',iv:iv1},a1,plain);
+  var ct2=await C.subtle.encrypt({name:'AES-GCM',iv:iv2},a2,ct1);
+  // Export raw keys
+  var r1=await C.subtle.exportKey('raw',a1);
+  var r2=await C.subtle.exportKey('raw',a2);
+  // Mandatory RSA layer
+  var k1r=await C.subtle.encrypt({name:'RSA-OAEP'},_zk.rsaKey,r1);
+  var k2r=await C.subtle.encrypt({name:'RSA-OAEP'},_zk.rsaKey,r2);
+  var result={
+    version:'4.1',algorithm:'RSA4096+ECDH-P384+AES256-GCM\xd72',
+    iv1:ab2b64(iv1),iv2:ab2b64(iv2),ct:ab2b64(ct2),
+    k1_rsa:ab2b64(k1r),k2_rsa:ab2b64(k2r)
+  };
+  // Optional ECDH layer (if EC key loaded)
+  if(_zk.ecKey){
+    result.k1_ec=await ecdhWrapKey(r1,_zk.ecKey);
+    result.k2_ec=await ecdhWrapKey(r2,_zk.ecKey);
+  }
+  return result;
+}
+// Legacy wrapper for backward compat
+async function zkEncrypt(data,key){return zkEncryptHybrid(data);}
+
+// ═══ SAVE OVERLAY — avec matrix rain + étapes ═══════════════════════════
+var _rainAnim=null;
+
+function svRainStart(){
+  var box=$('sv-box'); if(!box) return;
+  var c=document.createElement('canvas'); c.id='sv-rain';
+  box.insertBefore(c,box.firstChild);
+  c.width=box.offsetWidth||320; c.height=box.offsetHeight||280;
+  var ctx=c.getContext('2d');
+  var cols=Math.floor(c.width/11);
+  var drops=Array.from({length:cols},function(){return Math.random()*c.height/11|0;});
+  var chars='0123456789ABCDEF';
+  _rainAnim=setInterval(function(){
+    ctx.fillStyle='rgba(7,7,15,.14)'; ctx.fillRect(0,0,c.width,c.height);
+    ctx.font='9px JetBrains Mono,monospace';
+    drops.forEach(function(y,i){
+      var ch=chars[Math.random()*chars.length|0];
+      var a=(Math.random()*.7+.3).toFixed(2);
+      ctx.fillStyle='rgba(108,99,255,'+a+')';
+      ctx.fillText(ch,i*11,y*11);
+      if(y*11>c.height&&Math.random()>.975) drops[i]=0;
+      drops[i]++;
+    });
+  },55);
+}
+
+function svRainStop(){
+  if(_rainAnim){clearInterval(_rainAnim);_rainAnim=null;}
+  var r=$('sv-rain'); if(r&&r.parentNode) r.parentNode.removeChild(r);
+}
+
+function svStep(n){
+  // Activer l'étape n (1-5), marquer done toutes les précédentes
+  for(var i=1;i<=5;i++){
+    var el=$('svs'+i);
+    if(!el) continue;
+    el.classList.remove('active','done');
+    if(i<n) el.classList.add('done');
+    else if(i===n) el.classList.add('active');
+  }
+}
+
+function svShow(icon,txt,pct,step){
+  var ov=$('save-ov'); if(ov) ov.classList.remove('hidden');
+  svUp(icon,txt,pct);
+  if(step) svStep(step);
+  if(!_rainAnim) svRainStart();
+}
+
+function svUp(icon,txt,pct){
+  var i=$('sv-icon'),t=$('sv-txt'),b=$('sv-bar');
+  if(i) i.textContent=icon; if(t) t.textContent=txt;
+  if(b) b.style.width=pct+'%';
+}
+
+function svOk(){
+  svRainStop();
+  svStep(5);
+  var box=$('sv-box'); if(box) box.classList.add('sv-ok');
+  svUp('\u2713','Commit valid\u00e9 \u2014 chiffr\u00e9 et sauvegard\u00e9',100);
+  var i=$('sv-icon'); if(i){i.style.animation='none';i.style.color='var(--grn)';}
+}
+
+function svHide(){
+  svRainStop();
+  var ov=$('save-ov'); if(!ov) return;
+  ov.style.transition='opacity .35s var(--ez)'; ov.style.opacity='0';
+  setTimeout(function(){
+    ov.classList.add('hidden'); ov.style.opacity=''; ov.style.transition='';
+    var box=$('sv-box');
+    if(box){
+      box.classList.remove('sv-ok');
+      for(var i=1;i<=5;i++){var el=$('svs'+i);if(el)el.classList.remove('active','done');}
+    }
+    var ic=$('sv-icon'); if(ic){ic.style.animation='';ic.style.color='';}
+  },350);
+}
+
+// ═══ TEXTAREA AUTO-RESIZE (appelé aussi après restore) ════════════════════
+function resizeAllTextareas(){
+  [].slice.call(document.querySelectorAll('textarea')).forEach(function(ta){
+    ta.style.height='auto';
+    ta.style.height=Math.min(ta.scrollHeight,600)+'px';
+  });
+}
+
+// ═══ TAG INPUT WITH AUTOCOMPLETE (TIA) ════════════════════════════════════
+var _tiaid=0;
+function TIA(name,label,cat,ph){
+  var id='tia'+(_tiaid++); _tiReg[id]=name;
+  return '<div class="f tia-wrap"><label>'+label+'</label>'
+        +'<div class="ti-w" id="'+id+'w" onclick="this.querySelector(\'.ti-inp\').focus()">'
+    +'<input class="ti-inp" placeholder="'+ph+'"'
+    +' onkeydown="tiK(event,\''+id+'\',true)"'
+    +' onblur="tiBlur(event,\''+id+'\');setTimeout(function(){$(\"'+id+'_d\").classList.add(\'hidden\')},180)"'
+    +' oninput="tiaF(this,\''+id+'\',\''+cat+'\')"></div>'
+    +'<div class="ac-drop hidden" id="'+id+'_d"></div>'
+    +'<input type="hidden" id="'+id+'h"></div>';
+}
+function tiaHide(id){var d=$(id+'_d');if(d)d.classList.add('hidden');}
+function tiaF(el,id,cat){
+  var q=el.value.toLowerCase();
+  var pool=(_reg[cat]||[]).filter(function(x){return x.toLowerCase().indexOf(q)>=0;});
+  var d=$(id+'_d'); if(!d) return;
+  if(!pool.length||!q){d.classList.add('hidden');return;}
+  d.innerHTML=pool.slice(0,8).map(function(x){
+    return '<div class="ac-item" onmousedown="tiaPick(\''+id+'\',\''+x+'\')">'+x+'</div>';
+  }).join('');
+  d.classList.remove('hidden');
+}
+function tiaPick(id,val){
+  var w=$(id+'w'),inp=w.querySelector('.ti-inp'); if(!inp) return;
+  inp.value=val;
+  tiK({key:'Enter',preventDefault:function(){},target:inp},id,true);
+  $(id+'_d').classList.add('hidden');
+}
+
+// ═══ KNOWLEDGE NODE ID DISPLAY ════════════════════════════════════════════
+function knIdUpdate(el){
+  var concept=el.value.toUpperCase().replace(/\s/g,'_');
+  var fullId=concept?'kn_'+concept:'';
+  var disp=$('kn-id-disp'); if(!disp) return;
+  disp.value=fullId;
+  var hidden=document.querySelector('[name="_id"]'); if(hidden) hidden.value=fullId;
+  var exists=fullId&&(_reg.concepts||[]).indexOf(fullId)>=0;
+  if(exists){
+    disp.classList.add('collision');
+    disp.title='Concept existant \u2014 cette saisie enrichit le noeud existant (update)';
+  }else{
+    disp.classList.remove('collision');
+    disp.title='';
+  }
+}
+
+// ═══ PROJECT ID AUTO-GENERATION ═══════════════════════════════════════════
+function projIdUpdate(el){
+  var slug=slugify(el.value,'');
+  var pidField=document.querySelector('[name="project_id"]'); if(!pidField) return;
+  pidField.value=slug;
+  var hidden=document.querySelector('[name="_id"]'); if(hidden) hidden.value=slug;
+  var exists=slug&&(_reg.projects||[]).indexOf(slug)>=0;
+  if(exists){
+    pidField.classList.add('collision');
+    var btn=document.querySelector('.btn-save'); if(btn) btn.disabled=true;
+  }else{
+    pidField.classList.remove('collision');
+    var btn=document.querySelector('.btn-save'); if(btn) btn.disabled=false;
+  }
+}
+
+// ═══ EVENT ID AUTO-GENERATION ═════════════════════════════════════════════
+function evtIdUpdate(el){
+  var slug=slugify(el.value,'evt');
+  var disp=$('evt-id-disp'); if(!disp) return;
+  disp.value=slug;
+  var hidden=document.querySelector('[name="_id"]'); if(hidden) hidden.value=slug;
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// COUNTERS + REGISTRIES (reset a chaque changement de formulaire)
+// ═══════════════════════════════════════════════════════════════════════
+var _dlReg={},_dlMeta={},_tiReg={},_sid=0,_tid=0,_tiid=0,_dlid=0,_acid=0;
+function _rst(){ _sid=_tid=_tiid=_dlid=_acid=_acIdx=0; _dlReg={}; _dlMeta={}; _tiReg={}; }
+
+// ═══════════════════════════════════════════════════════════════════════
+// COMPONENT FACTORIES
+// ═══════════════════════════════════════════════════════════════════════
+
+function SL(name,min,max,step,def,label,la,lb,inv){
+  var id='s'+(_sid++);
+  var pct=((def-min)/(max-min)*100).toFixed(1);
+  var labs=(la&&lb)?'<div class="sl-lb"><span>'+la+'</span><span>'+lb+'</span></div>':'';
+  var invA=inv?' data-inv="1"':'';
+  return '<div class="f"><label>'+label+'</label>'
+    +'<div class="sl-w"><input type="range" class="sl-t" id="'+id+'" name="'+name+'"'
+    +' min="'+min+'" max="'+max+'" step="'+step+'" value="'+def+'"'
+    +' style="--p:'+pct+'%"'+invA+' oninput="slU(this)">'
+    +'<span class="sl-v" id="'+id+'v">'+def+'</span></div>'+labs+'</div>';
+}
+function slU(el){
+  var val=parseFloat(el.value),min=parseFloat(el.min),max=parseFloat(el.max);
+  var pct=((val-min)/(max-min)*100).toFixed(1);
+  el.style.setProperty('--p',pct+'%');
+  if(max===10&&min===0){
+    var inv=el.dataset.inv==='1', score=inv?(10-val):val;
+    var c=score<=3?'#f87171':score<=6.5?'#fbbf24':'#34d399';
+    el.style.setProperty('--tc',c);
+    var v=$(el.id+'v');
+    if(v){v.textContent=val;v.style.color=c;v.style.borderColor=c+'44';v.style.background=c+'18';}
+  }else if(max===1&&min===0){
+    var pf=val;
+    var c=pf<.35?'#f87171':pf<.65?'#fbbf24':'#34d399';
+    el.style.setProperty('--tc',c);
+    var v=$(el.id+'v'); if(v){v.textContent=val;v.style.color=c;v.style.background=c+'18';}
+  }else{
+    var v=$(el.id+'v'); if(v) v.textContent=el.value;
+  }
+}
+
+function TG(name,label,def){
+  var id='t'+(_tid++);
+  return '<div class="f"><label>&nbsp;</label><div class="tg-w">'
+    +'<label class="tg"><input type="checkbox" name="'+name+'"'+(def?' checked':'')+'>'
+    +'<span class="tg-s"></span></label>'
+    +'<span class="tg-l">'+label+'</span></div></div>';
+}
+
+function SEL(name,label,opts,def){
+  def=def||'';
+  var o=opts.map(function(x){
+    var v=typeof x==='string'?x:x.v, t=typeof x==='string'?x:x.t;
+    return '<option value="'+v+'"'+(v===def?' selected':'')+'>'+t+'</option>';
+  }).join('');
+  return '<div class="f"><label>'+label+'</label>'
+    +'<select name="'+name+'"><option value="">-- Choisir --</option>'+o+'</select></div>';
+}
+
+function TI(name,label,ph){
+  ph=ph||'+ Entree';
+  var id='ti'+(_tiid++); _tiReg[id]=name;
+  return '<div class="f"><label>'+label+'</label>'
+    +'<div class="ti-w" id="'+id+'w" onclick="this.querySelector(\'.ti-inp\').focus()">'
+    +'<input class="ti-inp" placeholder="'+ph+'" onkeydown="tiK(event,\''+id+'\')">'
+    +'</div><input type="hidden" id="'+id+'h"></div>';
+}
+function tiBlur(e,id){
+  // Phase 2.1 — créer le tag si l'utilisateur clique ailleurs sans appuyer Entrée
+  var v=e.target.value.trim(); if(!v) return;
+  tiK({key:'Enter',preventDefault:function(){},target:e.target},id);
+}
+function tiK(e,id){
+  if(e.key!=='Enter'&&e.key!==',') return; e.preventDefault();
+  var inp=e.target,v=inp.value.trim(); if(!v) return;
+  var w=$(id+'w'),t=document.createElement('span');
+  t.className='tag';
+  t.innerHTML=v+'<button type="button" onclick="this.parentElement.remove();tiS(\''+id+'\')">&#215;</button>';
+  w.insertBefore(t,inp); inp.value=''; tiS(id);
+}
+function tiS(id){
+  var tags=[].slice.call($(id+'w').querySelectorAll('.tag')).map(function(t){
+    return t.textContent.replace('\u00d7','').trim();
+  });
+  $(id+'h').value=JSON.stringify(tags);
+}
+
+function DL(name,label,ph,ml,rows){
+  ph=ph||''; ml=ml||false; rows=rows||2;
+  var id='dl'+(_dlid++); _dlReg[id]=name; _dlMeta[id]={ml:ml,rows:rows};
+  var esc=ph.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+  return '<div class="f full"><label>'+label+'</label>'
+    +'<div id="'+id+'l"></div>'
+    +'<button type="button" class="btn-add" onclick="dlA(\''+id+'\',\''+esc+'\','+ml+','+rows+')">+ Ajouter</button></div>';
+}
+function dlA(id,ph,ml,rows){
+  var l=$(id+'l'),d=document.createElement('div'); d.className='dl-i';
+  d.innerHTML=ml
+    ?'<textarea rows="'+rows+'" placeholder="'+ph+'"></textarea><button type="button" class="btn-rm" onclick="this.parentElement.remove()">&#10005;</button>'
+    :'<input type="text" placeholder="'+ph+'"><button type="button" class="btn-rm" onclick="this.parentElement.remove()">&#10005;</button>';
+  l.appendChild(d); var inp=d.querySelector('input,textarea'); if(inp) inp.focus();
+}
+function dlG(id){
+  return [].slice.call(($(id+'l')||{querySelectorAll:function(){return [];}}).querySelectorAll('input,textarea'))
+    .map(function(i){return i.value.trim();}).filter(Boolean);
+}
+
+function ACC(label,content,open){
+  var id='ac'+(_acid++);
+  return '<div class="acc-t'+(open?' open':'')+'" onclick="accT(this,\''+id+'\')">'
+    +'<span>&#9656; '+label+'</span><span class="acc-arr">&#9662;</span></div>'
+    +'<div class="acc-b'+(open?' open':'')+'" id="'+id+'"><div class="acc-i">'+content+'</div></div>';
+}
+function accT(t,id){var b=$(id),o=t.classList.toggle('open');b.classList.toggle('open',o);t.setAttribute('aria-expanded',o?'true':'false');}
+
+// ═══════════════════════════════════════════════════════════════════════
+// DATA COLLECTION
+// ═══════════════════════════════════════════════════════════════════════
+function setD(obj,keys,val){
+  var o=obj;
+  for(var i=0;i<keys.length-1;i++){
+    if(!o[keys[i]]||typeof o[keys[i]]!=='object') o[keys[i]]={};
+    o=o[keys[i]];
+  }
+  o[keys[keys.length-1]]=val;
+}
+function collect(){
+  var data={},form=$('active-form'); if(!form) return data;
+  [].slice.call(form.querySelectorAll('[name]')).forEach(function(el){
+    // Collecte TOUS les champs nommés incluant les hidden (date, heure_saisie, _id)
+    var v;
+    if(el.type==='checkbox') v=el.checked;
+    else if(el.type==='range') v=parseFloat(el.value);
+    else if(el.type==='number') v=el.value===''?null:parseFloat(el.value);
+    else v=el.value.trim();
+    if(v===''||v===null||v===undefined) return;
+    setD(data,el.name.split('.'),v);
+  });
+  Object.keys(_dlReg).forEach(function(id){
+    var v=dlG(id); if(v.length) setD(data,_dlReg[id].split('.'),v);
+  });
+  Object.keys(_tiReg).forEach(function(id){
+    try{var raw=$(id+'h');if(!raw||!raw.value)return;var v=JSON.parse(raw.value);if(v&&v.length)setD(data,_tiReg[id].split('.'),v);}catch(e){}
+  });
+  return data;
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// DRAFT AUTOSAVE (sessionStorage — efface a la fermeture de l'onglet)
+// ═══════════════════════════════════════════════════════════════════════
+var _dk='dt_draft_',_draftTimer=null,_curType=null;
+
+function draftSave(){
+  if(!_curType) return;
+  try{
+    var d=collect();
+    // Phase 2.2 — sauvegarder DL avec métadonnées pour restauration fidèle
+    var dlSnap={};
+    Object.keys(_dlReg).forEach(function(id){
+      var meta=_dlMeta[id]||{ml:false,rows:2};
+      dlSnap[id]={vals:dlG(id),ml:meta.ml,rows:meta.rows};
+    });
+    sessionStorage.setItem(_dk+_curType,JSON.stringify({fields:d,dl:dlSnap}));
+    _draftShow('\u{1F4BE} auto '+new Date().toLocaleTimeString('fr',{hour:'2-digit',minute:'2-digit'}));
+  }catch(e){}
+}
+function draftRestore(type){
+  try{
+    var raw=sessionStorage.getItem(_dk+type); if(!raw) return false;
+    var saved=JSON.parse(raw);
+    // Support ancien format (juste les fields) et nouveau (fields + dl)
+    var d=saved.fields||saved, dlSnap=saved.dl||{};
+    var form=$('active-form'); if(!form) return false;
+    // Phase 2.2 — restaurer les champs standards
+    [].slice.call(form.querySelectorAll('[name]')).forEach(function(el){
+    // Tous champs collectés (TI hidden n'ont pas name donc auto-exclus)
+      var keys=el.name.split('.'),val=d;
+      for(var i=0;i<keys.length;i++){if(val&&typeof val==='object')val=val[keys[i]];else{val=undefined;break;}}
+      if(val===undefined||val===null) return;
+      if(el.type==='checkbox') el.checked=Boolean(val);
+      else if(el.type==='range'){el.value=val;slU(el);}
+      else el.value=val;
+    });
+    // Phase 2.2 — restaurer les DL avec le bon type (textarea vs input)
+    Object.keys(dlSnap).forEach(function(id){
+      if(!$(id+'l')) return;
+      var entry=dlSnap[id];
+      (entry.vals||[]).forEach(function(v){
+        if(!v) return;
+        dlA(id,'',entry.ml||false,entry.rows||2);
+        var l=$(id+'l'),items=l.querySelectorAll('input,textarea');
+        if(items.length) items[items.length-1].value=v;
+      });
+    });
+    setTimeout(resizeAllTextareas,80);
+    return true;
+  }catch(e){return false;}
+}
+function draftClear(type){ try{sessionStorage.removeItem(_dk+type);}catch(e){} }
+function _draftShow(msg){
+  var el=$('draft-ind'); if(!el) return;
+  el.innerHTML=msg; el.style.opacity='1';
+  clearTimeout(el._t); el._t=setTimeout(function(){el.style.opacity='.35';},3500);
+}
+window.addEventListener('beforeunload',function(){ if(_curType) draftSave(); });
+
+// ═══════════════════════════════════════════════════════════════════════
+// SAVE (Zero-Knowledge + Event Sourcing)
+// ═══════════════════════════════════════════════════════════════════════
+async function save(type){
+  var btn=document.querySelector('.btn-save');
+  if(btn) btn.disabled=true;
+
+  try{
+    // ── Phase 1 : collecte + affichage overlay
+    svShow('\uD83D\uDD11','G\u00e9n\u00e9ration des cl\u00e9s de session AES-256...',10,1);
+    await new Promise(function(r){setTimeout(r,380);});
+
+    var data=collect();
+    var isGenesis=!data._target_id;
+    var entityId=(data._id&&data._id.trim())||
+      data.project_id||data.person_id||data.concept||
+      (function(){
+        var d=$('rsn-id-disp')||$('pred-id-disp')||$('belief-id-disp')||
+              $('kn-id-disp')||$('evt-id-disp')||$('proj-id-disp');
+        return (d&&d.value&&d.value.trim())?d.value.trim():null;
+      })();
+    var targetId=data._target_id||null;
+    var hint={
+      _id:entityId,_target_id:targetId,
+      concept:data.concept||null,project_id:data.project_id||null,
+      person_id:data.person_id||null,mois:data.mois||null,
+    };
+
+    // ── Phase 2 : chiffrement hybride RSA+ECDH
+    svUp('\uD83D\uDD10','Chiffrement hybride RSA-4096 + ECDH-P384...',35); svStep(2);
+    await new Promise(function(r){setTimeout(r,280);});
+    await zkLoadKeys();
+
+    svUp('\uD83D\uDCE6','Double chiffrement AES-256-GCM \u00d72...',58); svStep(3);
+    await new Promise(function(r){setTimeout(r,220);});
+    var encrypted=await zkEncryptHybrid(data);
+
+    // ── Phase 3 : transmission
+    svUp('\uD83D\uDE80','Transmission Zero-Knowledge...',78); svStep(4);
+    await new Promise(function(r){setTimeout(r,180);});
+
+    var r=await fetch('/api/save/'+type,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(Object.assign({},encrypted,{_hint:hint}))
+    });
+    var j=await r.json();
+
+    if(r.ok&&j.success){
+      // Enregistrer ID dans le registre
+      var catMap={project:'projects',person:'persons',reasoning:'reasonings',
+        knowledge_node:'concepts',prediction:'predictions',belief:'beliefs',event:'events'};
+      var cat=catMap[type];
+      if(cat&&j._id) regAdd(cat,j._id);
+
+      draftClear(type);
+      loadStats();
+
+      // ── Phase 4 : succès
+      svOk();
+      await new Promise(function(r){setTimeout(r,950);});
+      svHide();
+
+      // Reset immédiat du formulaire (anti double-submit)
+      setTimeout(function(){
+        var n=document.querySelector('.ni.on'); if(n) n.click();
+        if(btn) btn.disabled=false;
+      },200);
+
+    }else{
+      svHide();
+      toast('Erreur serveur: '+(j.detail||'inconnue'),'err');
+      if(btn) btn.disabled=false;
+    }
+  }catch(e){
+    svHide();
+    toast('Erreur: '+e.message,'err'); console.error(e);
+    if(btn) btn.disabled=false;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// STATS + TOAST
+// ═══════════════════════════════════════════════════════════════════════
+function _animCount(el,target,dur){
+  if(!el) return;
+  var start=parseInt(el.textContent)||0;
+  if(start===target) return;
+  var t0=null;
+  (function step(ts){
+    if(!t0) t0=ts;
+    var p=Math.min((ts-t0)/dur,1);
+    var e=1-Math.pow(1-p,3);
+    el.textContent=Math.round(start+(target-start)*e);
+    if(p<1) requestAnimationFrame(step);
+    else{ el.classList.add('up'); setTimeout(function(){el.classList.remove('up');},600); }
+  })(performance.now());
+}
+
+function loadStats(){
+  fetch('/api/meta/stats').then(function(r){return r.json();}).then(function(s){
+    _animCount($('s0'),s.daily||0,900);
+    _animCount($('s1'),s.reasoning||0,900);
+    _animCount($('s2'),s.knowledge||0,900);
+    _animCount($('s3'),s.predictions||0,900);
+    _animCount($('s4'),s.projects||0,900);
+    _animCount($('s5'),s.persons||0,900);
+  }).catch(function(){});
+}
+function toast(msg,type,ms){
+  type=type||'inf';ms=ms||4500;
+  var el=document.createElement('div'); el.className='toast '+type;
+  var ic={ok:'&#9989;',err:'&#10060;',inf:'&#8505;'};
+  el.innerHTML='<span>'+(ic[type]||'&#8226;')+'</span><span>'+msg+'</span>';
+  $('toasts').appendChild(el);
+  setTimeout(function(){
+    el.style.animation='tOut .2s var(--ez) forwards';
+    setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el);},200);
+  },ms);
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// COMMAND PALETTE
+// ═══════════════════════════════════════════════════════════════════════
+var _palSel=0;
+document.addEventListener('keydown',function(e){
+  if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();palOpen();}
+  if(e.key==='Escape') palClose();
+});
+var _palTrap=null;
+function palOpen(){
+  $('pal').classList.remove('hidden');
+  var inp=$('pal-inp'); inp.value=''; inp.focus();
+  palFilter('');
+  // Focus trap
+  _palTrap=function(e){
+    if(e.key==='Tab'){
+      e.preventDefault();
+      if(e.shiftKey) palKey({key:'ArrowUp'});
+      else palKey({key:'ArrowDown'});
+    }
+  };
+  document.addEventListener('keydown',_palTrap,true);
+}
+function palClose(){
+  $('pal').classList.add('hidden');
+  if(_palTrap){document.removeEventListener('keydown',_palTrap,true);_palTrap=null;}
+}
+function palFilter(q){
+  _palSel=0;
+  var cats=[
+    {cat:'Journal',keys:['daily','weekly_review','monthly_snapshot']},
+    {cat:'Cognition',keys:['reasoning','reasoning_followup','prediction','prediction_resolution','belief','belief_update']},
+    {cat:'Savoir',keys:['knowledge_node','event']},
+    {cat:'Projets',keys:['project','project_log','project_update']},
+    {cat:'Social',keys:['person','relationship_update']},
+  ];
+  var html='';
+  cats.forEach(function(c){
+    var items=c.keys.filter(function(k){
+      var m=META[k]||{};
+      return !q||(m.t.toLowerCase().indexOf(q.toLowerCase())>=0)||(k.indexOf(q.toLowerCase())>=0);
+    });
+    if(!items.length) return;
+    html+='<div class="pal-cat">'+c.cat+'</div>';
+    items.forEach(function(k,i){
+      var m=META[k]||{t:k,s:'',ic:'&#128214;'};
+      var isSel=(html.split('pal-item').length-1)===_palSel;
+      html+='<div class="pal-item'+(isSel?' sel':'')+'" data-k="'+k+'" onclick="palGo(\''+k+'\')">'
+        +'<span class="pal-ic2">'+m.ic+'</span>'
+        +'<span class="pal-t">'+m.t+'</span>'
+        +'<span class="pal-s">'+m.s.substring(0,36)+'...</span></div>';
+    });
+  });
+  $('pal-results').innerHTML=html||'<div style="padding:16px;color:var(--t2);text-align:center">Aucun resultat</div>';
+}
+function palKey(e){
+  var items=[].slice.call($('pal-results').querySelectorAll('.pal-item'));
+  if(e.key==='ArrowDown'){
+    e.preventDefault(); _palSel=(_palSel+1)%items.length;
+    items.forEach(function(el,i){el.classList.toggle('sel',i===_palSel);});
+    items[_palSel]&&items[_palSel].scrollIntoView({block:'nearest'});
+  }else if(e.key==='ArrowUp'){
+    e.preventDefault(); _palSel=(_palSel-1+items.length)%items.length;
+    items.forEach(function(el,i){el.classList.toggle('sel',i===_palSel);});
+  }else if(e.key==='Enter'){
+    var sel=items[_palSel]; if(sel) palGo(sel.dataset.k);
+  }
+}
+function palGo(type){
+  palClose();
+  var n=document.querySelector('[data-f="'+type+'"]'); if(n) n.click();
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════════════════════
+var META={
+  daily:                  {t:'Daily State',            s:'Journal quotidien - 3 min',              ic:'\u2B50'},
+  weekly_review:          {t:'Weekly Review',          s:'Bilan semaine - dimanche soir',           ic:'\uD83D\uDCC5'},
+  monthly_snapshot:       {t:'Snapshot Mensuel',       s:'Photo de qui tu es ce mois',             ic:'\uD83D\uDCF8'},
+  reasoning:              {t:'Raisonnement',           s:'Decision ou analyse (S0)',               ic:'\uD83E\uDDE9'},
+  reasoning_followup:     {t:'Suivi Raisonnement',     s:'Resultat posterieur (\u0394)',           ic:'\uD83D\uDD2D'},
+  prediction:             {t:'Prediction',             s:'Pari sur un evenement futur (S0)',       ic:'\uD83C\uDFAF'},
+  prediction_resolution:  {t:'Resoudre Prediction',    s:'Cloturer une prediction (\u0394)',       ic:'\uD83C\uDFC1'},
+  belief:                 {t:'Croyance',               s:'Etablir une croyance (S0)',              ic:'\uD83D\uDCA1'},
+  belief_update:          {t:'Update Croyance',        s:'Faire evoluer une croyance (\u0394)',    ic:'\uD83D\uDD04'},
+  knowledge_node:         {t:'Connaissance',           s:'Noeud de savoir (S0 ou update)',        ic:'\uD83D\uDCDA'},
+  event:                  {t:'Evenement',              s:'Tout evenement notable',                 ic:'\u26A1'},
+  project:                {t:'Nouveau Projet',         s:'Creer un projet (S0)',                   ic:'\uD83D\uDE80'},
+  project_log:            {t:'Session Projet',         s:'Log de session (\u0394)',               ic:'\uD83D\uDCC1'},
+  project_update:         {t:'Statut Projet',          s:'Mise a jour statut (\u0394)',           ic:'\uD83D\uDD27'},
+  person:                 {t:'Nouvelle Personne',      s:'Fiche personne (S0)',                    ic:'\uD83E\uDEAA'},
+  relationship_update:    {t:'Update Relation',        s:'Evolution d\'une relation (\u0394)',     ic:'\uD83D\uDC65'},
+};
+
+function nav(el){
+  if(_curType) draftSave();
+  [].slice.call(document.querySelectorAll('.ni')).forEach(function(n){n.classList.remove('on');});
+  el.classList.add('on');
+  var type=el.dataset.f, m=META[type]||{};
+  _curType=type;
+  $('hd-t').textContent=m.t||type;
+  $('hd-s').textContent=m.s||'';
+  $('welcome').classList.add('hidden');
+  var fc=$('fc');
+  fc.classList.remove('hidden');
+  _rst();
+  fc.classList.remove('gl'); void fc.offsetWidth; fc.classList.add('gl');
+  fc.innerHTML=FORMS[type]?FORMS[type]():'<p style="color:var(--t2);padding:20px">Formulaire a venir...</p>';
+  [].slice.call(fc.querySelectorAll('.sl-t')).forEach(function(sl){slU(sl);});
+  var restored=draftRestore(type);
+  if(restored){
+    _draftShow('\uD83D\uDCBE Brouillon restaure');
+    setTimeout(function(){[].slice.call(fc.querySelectorAll('.sl-t')).forEach(function(sl){slU(sl);});},60);
+  }
+  clearInterval(_draftTimer);
+  _draftTimer=setInterval(draftSave,20000);
+  setTimeout(function(){
+    var form=$('active-form'); if(!form) return;
+    form.addEventListener('input',function(){clearTimeout(form._it);form._it=setTimeout(draftSave,2500);});
+  },200);
+}
+function bnSet(el){
+  [].slice.call(document.querySelectorAll('.bn-i')).forEach(function(n){n.classList.remove('on');});
+  el.classList.add('on');
+}
+
+// Phase 3.1 — Textarea auto-expand (event delegation global)
+document.addEventListener('input',function(e){
+  if(e.target.tagName==='TEXTAREA'){
+    e.target.style.height='auto';
+    e.target.style.height=Math.min(e.target.scrollHeight,600)+'px';
+  }
+});
+
+// Phase 3.3 — Ctrl+Enter → sauvegarder depuis n'importe quel champ
+document.addEventListener('keydown',function(e){
+  if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){
+    e.preventDefault();
+    var btn=document.querySelector('.btn-save');
+    if(btn&&!btn.disabled) btn.click();
+  }
+});
+
+document.addEventListener('DOMContentLoaded',function(){
+  regLoad();
+  zkLoadKeys().catch(function(){
+    var b=$('zk-badge'); if(b){b.textContent='\u26A0 Cles absentes';b.style.color='var(--red)';}
+  });
+  var wg=$('wg');
+  if(wg) wg.innerHTML=Object.keys(META).slice(0,9).map(function(k){
+    var v=META[k]||{};
+    return '<div class="wc" onclick="document.querySelector(\'[data-f='+k+']\').click()">'
+      +'<div class="wi">'+v.ic+'</div><div class="wl">'+v.t+'</div>'
+      +'<div class="ws">'+v.s+'</div></div>';
+  }).join('');
+  loadStats();
+  setTimeout(function(){var n=document.querySelector('[data-f="daily"]');if(n)n.click();},100);
+});
+
+// ═══ MOUSE SPOTLIGHT + CARD TILT ════════════════════════════════════════
+(function(){
+  var raf=null;
+  document.addEventListener('mousemove',function(e){
+    if(raf) return;
+    raf=requestAnimationFrame(function(){
+      raf=null;
+      var root=document.documentElement;
+      root.style.setProperty('--mx',e.clientX+'px');
+      root.style.setProperty('--my',e.clientY+'px');
+      // Tilt léger sur les cards
+      var card=e.target.closest&&e.target.closest('.card');
+      if(card&&!card._tiltLocked){
+        var r=card.getBoundingClientRect();
+        var cx=((e.clientX-r.left)/r.width-.5)*6;
+        var cy=((e.clientY-r.top)/r.height-.5)*4;
+        card.style.transform='perspective(1200px) rotateX('+(-cy)+'deg) rotateY('+(cx)+'deg) translateZ(2px)';
+      }
+    });
+  });
+  document.addEventListener('mouseleave',function(e){
+    var card=e.target&&e.target.closest&&e.target.closest('.card');
+    if(card){
+      card.style.transition='transform .45s cubic-bezier(.25,.46,.45,.94),border-color .25s,box-shadow .25s';
+      card.style.transform='';
+      setTimeout(function(){if(card)card.style.transition='';},450);
+    }
+  },true);
+})();
+
+// ═══ MOBILE HAPTIC FEEDBACK ═══════════════════════════════════════════════
+document.addEventListener('click',function(e){
+  if(e.target.classList&&(
+    e.target.classList.contains('btn-p')||
+    e.target.classList.contains('btn-add')||
+    e.target.classList.contains('ni')
+  )){
+    try{navigator.vibrate&&navigator.vibrate(8);}catch(err){}
+  }
+});
+
+// ═══ ARIA-LABEL sur boutons icônes ════════════════════════════════════════
+document.addEventListener('DOMContentLoaded',function(){
+  // Les boutons "+" et "×" dans les dynlists
+  document.querySelectorAll('.btn-rm').forEach(function(b){
+    b.setAttribute('aria-label','Supprimer cet élément');
+  });
+});
+
+// ═══ ARIA-LABEL sur save-ov (annoncer à ouverture) ════════════════════════
+var _origSvShow2=svShow;
+svShow=function(icon,txt,pct,step){
+  _origSvShow2(icon,txt,pct,step);
+  var ov=$('save-ov');
+  if(ov) ov.setAttribute('aria-label','Chiffrement en cours: '+txt);
+};
+
+// ═══════════════════════════════════════════════════════════════════════
+// ████ FORMULAIRES ████
+// ═══════════════════════════════════════════════════════════════════════
+var FORMS={};
+
+// ── 1. DAILY STATE ──────────────────────────────────────────────────────
+FORMS.daily=function(){return '<form id="active-form">'
++'<input type="hidden" name="date" value="'+TODAY+'">'
++'<input type="hidden" name="heure_saisie" value="'+TIME+'">'
+
++'<div class="card"><div class="card-hd"><span class="ci">&#127769;</span>'
++'<div><h3>Sommeil</h3></div><span class="ev-badge genesis">S0 \u00b7 standalone</span></div>'
++'<div class="card-body"><div class="fg">'
++SL('sommeil.heures',0,12,.5,7.5,'Heures de sommeil','0h','12h')
++SL('sommeil.qualite',0,10,1,7,'Qualite du sommeil','Mauvais','Parfait')
++'</div><div class="fg mt">'
++'<div class="f"><label>Heure coucher</label><input type="time" name="sommeil.heure_coucher" value="23:00"></div>'
++'<div class="f"><label>Heure lever</label><input type="time" name="sommeil.heure_lever" value="07:00"></div>'
++'<div class="f"><label>Reveils nocturnes</label><input type="number" name="sommeil.reveils_nocturnes" value="0" min="0" max="15"></div>'
++'<div class="f"><label>Notes sommeil</label><input type="text" name="sommeil.notes" placeholder="Cauchemar, reveil precoce..."></div>'
++'</div></div></div>'
+
++'<div class="card"><div class="card-hd"><span class="ci">&#9889;</span><div><h3>Energie et Corps</h3></div></div>'
++'<div class="card-body"><div class="fg">'
++SL('physique.energie',0,10,1,7,'Energie physique','Epuise','Plein energie')
++SL('physique.forme',0,10,1,7,'Forme physique','Malade','Parfait')
++'</div><div class="fg mt">'
++SEL('physique.alimentation','Alimentation',['normal','bien mange','mal mange','repas saute','regime strict'])
++'<div class="f"><label>Symptomes</label><input type="text" name="physique.symptomes_raw" placeholder="Maux de tete, fatigue..."></div>'
++TG('physique.sport_fait','Sport effectue')
++'<div class="f"><label>Detail sport</label><input type="text" name="physique.sport_detail"></div>'
++TG('physique.alcool','Alcool')
++'<div class="f"><label>Quantite alcool</label><input type="text" name="physique.alcool_quantite"></div>'
++'</div></div></div>'
+
++'<div class="card"><div class="card-hd"><span class="ci">&#129504;</span><div><h3>Etat Mental</h3></div></div>'
++'<div class="card-body"><div class="fg">'
++SL('mental.humeur',0,10,1,7,'Humeur','Tres bas','Euphorique')
++SL('mental.stress',0,10,1,3,'Stress','Aucun','Extreme',true)
++SL('mental.anxiete',0,10,1,2,'Anxiete','Aucune','Extreme',true)
++SL('mental.motivation',0,10,1,7,'Motivation','Nulle','Maximale')
++SL('mental.concentration',0,10,1,7,'Concentration','Nulle','Laser')
++SEL('mental.emotion_dominante','Emotion dominante',EMOTS)
++'</div><div class="f mt"><label>Notes mentales</label>'
++'<textarea name="mental.notes_mental" rows="2" placeholder="Ruminations, etat general..."></textarea></div>'
++'</div></div>'
+
++'<div class="card"><div class="card-hd"><span class="ci">&#9728;&#65039;</span><div><h3>Journee</h3></div></div>'
++'<div class="card-body"><div class="fg">'
++SL('journee.productivite',0,10,1,6,'Productivite','Nulle','Maximale')
++SL('journee.satisfaction_globale',0,10,1,6,'Satisfaction globale','Mauvaise','Excellente')
++SL('journee.temps_travail_heures',0,14,.5,8,'Heures travail','0h','14h')
++SL('journee.temps_projet_perso_heures',0,12,.5,0,'Heures projet perso','0h','12h')
++SL('journee.interactions_sociales.niveau',0,10,1,5,'Interactions sociales','Isole','Tres social')
++'</div><div class="fg g1 mt">'
++DL('journee.focus_du_jour','Domaines travailles','linux, bridge, lecture...')
++DL('journee.accomplissements','Accomplissements','Ce que tu as fait...')
++DL('journee.frustrations','Frustrations','Ce qui t\'a frustre...')
++DL('journee.surprises','Surprises (inattendu)','Une surprise...')
++'</div></div></div>'
+
++'<div class="card"><div class="card-hd"><span class="ci">&#128203;</span><div><h3>Contexte et Notes</h3></div></div>'
++'<div class="card-body"><div class="fg">'
++TG('contexte.meteo_impact','Meteo a eu un impact')
++'<div class="f"><label>Evenement exterieur notable</label>'
++'<input type="text" name="contexte.evenement_exterieur" placeholder="News, evenement marquant..."></div>'
++'</div><div class="f mt"><label>Note libre</label>'
++'<textarea name="note_libre" rows="3" placeholder="Tout ce que tu veux noter..."></textarea></div>'
++'</div></div>'
+
++'<div class="ff"><button type="button" class="btn btn-p btn-save" onclick="save(\'daily\')">&#128190; Commit Daily State</button>'
++'<div class="fh">&#128274; ZK \u00b7 chiffrement local \u00b7 append-only</div></div>'
++'</form>';};
+
+// ── 2. EVENT ──────────────────────────────────────────────────────────
+FORMS.event=function(){return '<form id="active-form">'
++'<input type="hidden" name="date" value="'+TODAY+'">'
++'<input type="hidden" name="timestamp" value="'+now.toISOString()+'">'
+
++'<div class="card"><div class="card-hd"><span class="ci">&#128203;</span>'
++'<div><h3>Classification</h3></div><span class="ev-badge genesis">S0 \u00b7 standalone</span></div>'
++'<div class="card-body"><div class="fg">'
++'<input type="hidden" name="_id" id="evt-id-hidden" value="">'
++'<div class="f full"><label>Titre (court et m\u00e9morable) — g\u00e9n\u00e8re l\'ID <span class="req">*</span></label>'
++'<input type="text" name="titre" autofocus placeholder="Ex: D\u00e9couverte ZFS RAID-Z3, Conflit avec X..."'
++' oninput="evtIdUpdate(this)"></div>'
++'<div class="f full mt2"><label>ID \u00e9v\u00e9nement</label>'
++'<input type="text" id="evt-id-disp" class="mono-field id-disp" readonly placeholder="Type un titre..."></div>'
++SEL('domaine','Domaine',DOMS)
++SEL('type','Type',['decision','decouverte','conflit','succes','echec','rencontre','prise_de_conscience','accident','apprentissage','opportunite','autre'])
++'<div class="f"><label>Sous-domaine</label><input type="text" name="sous_domaine"></div>'
++'</div><div class="fg mt">'
++SL('importance',0,10,1,5,'Importance','Anecdotique','Fondamental')
++SL('urgence_au_moment',0,10,1,3,'Urgence au moment','Aucune','Extreme',true)
++'</div></div></div>'
+
++'<div class="card"><div class="card-hd"><span class="ci">&#128214;</span><div><h3>Description</h3></div></div>'
++'<div class="card-body"><div class="fg g1">'
++'<div class="f"><label>Description complete</label><textarea name="description" rows="4" placeholder="Que s\'est-il passe exactement ?"></textarea></div>'
++'<div class="f"><label>Contexte (ce qui menait a cet evenement)</label><textarea name="contexte" rows="2"></textarea></div>'
++'<div class="f"><label>Ressenti immediat</label><input type="text" name="ressenti_immediat"></div>'
++'</div></div></div>'
+
++'<div class="card"><div class="card-hd"><span class="ci">&#128165;</span><div><h3>Impact</h3></div></div>'
++'<div class="card-body"><div class="fg">'
++SL('impact.emotionnel',-5,5,1,0,'Impact emotionnel','-5 negatif','+5 positif')
++'<div class="f"><label>Impact pratique</label><input type="text" name="impact.pratique"></div>'
++'</div><div class="fg g1 mt">'
++DL('consequences.immediates','Consequences immediates','Une consequence...')
++DL('consequences.anticipees','Consequences anticipees','Ce qui va se passer...')
++'</div></div>'
++ACC('Reflexion et liens',
+  '<div class="f"><label>Lecon</label><textarea name="lecon" rows="2"></textarea></div>'
+  +'<div class="fg mt">'+SEL('probabilite_recurrence','Probabilite recurrence',['rare','possible','probable','inevitable'])+TG('a_refaire_pareil','Tu referais pareil',true)+'</div>'
+  +'<div class="mt">'+TI('personnes','Personnes impliquees (IDs)','p_prenom_nom + Entree')+'</div>'
+  +'<div class="mt">'+TI('links.knowledge_nodes','Connaissances liees','kn_NOM + Entree')+'</div>'
+)+'</div>'
+
++'<div class="ff"><button type="button" class="btn btn-p btn-save" onclick="save(\'event\')">&#128190; Commit Evenement</button>'
++'<div class="fh">Sequentiel \u00b7 immuable \u00b7 jamais ecrase</div></div>'
++'</form>';};
+
+// ── 3. REASONING (genesis) ────────────────────────────────────────────
+FORMS.reasoning=function(){
+  return '<form id="active-form">'
++'<input type="hidden" name="_id" id="rsn-id-hidden" value="">'
++'<div class="card"><div class="card-hd"><span class="ci">&#128192;</span>'
++'<div><h3>Raisonnement</h3><div class="cs">S0 Genesis \u00b7 cree l\'entite rsn</div></div>'
++'<span class="ev-badge genesis">GENESIS</span></div>'
++'<div class="card-body">'
++'<div class="f full"><label>Titre court (g\u00e9n\u00e8re l\'ID) <span class="req">*</span></label>'
++'<input type="text" name="titre" autofocus placeholder="Ex: Choisir entre ZFS et BTRFS"'
++' oninput="slugUpdate(this,\'rsn\',\'reasonings\',\'rsn-id-disp\')"></div>'
++'<div class="f full mt2"><label>ID g\u00e9n\u00e9r\u00e9 <span style="color:var(--t3);font-weight:400">(lecture seule \u2014 copier pour le suivi)</span></label>'
++'<input type="text" id="rsn-id-disp" class="mono-field" readonly placeholder="Type un titre ci-dessus..."'
++' style="color:var(--cyan);background:rgba(34,211,238,.06);border-color:rgba(34,211,238,.2)"></div>'
++'<div class="fg mt">'
++SEL('type','Type',['decision','analyse','resolution_probleme','planification','evaluation','diagnostic'])
++SEL('domaine','Domaine',DOMS)
++'<div class="f"><label>Sous-domaine</label><input type="text" name="sous_domaine"></div>'
++SL('importance',0,10,1,6,'Importance','Anecdotique','Critique')
++SL('urgence',0,10,1,4,'Urgence','Aucune','Immediate',true)
++'<div class="f"><label>Temps investi (min)</label><input type="number" name="temps_passe_minutes" value="20" min="1"></div>'
++'</div></div></div>'
+
++'<div class="card"><div class="card-hd"><span class="ci">&#10067;</span><div><h3>Le Probleme</h3></div></div>'
++'<div class="card-body"><div class="fg g1">'
++'<div class="f"><label>Probleme (precis et verifiable)</label><textarea name="probleme" rows="3" autofocus placeholder="Description precise..."></textarea></div>'
++'<div class="f"><label>Objectif</label><textarea name="objectif" rows="2"></textarea></div>'
++'<div class="f"><label>Contexte</label><textarea name="contexte" rows="2"></textarea></div>'
++'<div class="f"><label>Enjeux si tu te trompes</label><input type="text" name="enjeux"></div>'
++DL('contraintes','Contraintes','Une contrainte...')
++DL('faits_connus','Faits connus','Un fait...')
++DL('hypotheses','Hypotheses','Une hypothese...')
++'</div></div></div>'
+
++'<div class="card"><div class="card-hd"><span class="ci">&#9878;&#65039;</span><div><h3>Options</h3><div class="cs">Decris au moins 2 options</div></div></div>'
++'<div class="card-body">'
++'<div class="opt-b"><div class="opt-l">OPTION A</div>'
++'<div class="f"><label>Description</label><input type="text" name="opt_A.description"></div>'
++'<div class="fg mt">'+DL('opt_A.avantages','Avantages','Un avantage...')+DL('opt_A.inconvenients','Inconvenients','Un inconvenient...')+'</div>'
++'<div class="fg mt">'+SL('opt_A.probabilite_succes',0,1,.05,.5,'Probabilite succes','0%','100%')
++'<div class="f"><label>Cout de l\'erreur</label><input type="text" name="opt_A.cout_erreur"></div></div></div>'
++'<div class="opt-b"><div class="opt-l">OPTION B</div>'
++'<div class="f"><label>Description</label><input type="text" name="opt_B.description"></div>'
++'<div class="fg mt">'+DL('opt_B.avantages','Avantages','Un avantage...')+DL('opt_B.inconvenients','Inconvenients','Un inconvenient...')+'</div>'
++'<div class="fg mt">'+SL('opt_B.probabilite_succes',0,1,.05,.5,'Probabilite succes','0%','100%')
++'<div class="f"><label>Cout de l\'erreur</label><input type="text" name="opt_B.cout_erreur"></div></div></div>'
++DL('criteres_utilises','Criteres de decision','Ex: cout, reversibilite...')
++'</div></div>'
+
++'<div class="card"><div class="card-hd"><span class="ci">&#9989;</span><div><h3>Decision</h3></div></div>'
++'<div class="card-body"><div class="fg">'
++'<div class="f"><label>Option choisie</label><input type="text" name="option_choisie" placeholder="opt_A / opt_B / autre..."></div>'
++SL('confiance_avant',0,1,.05,.65,'Confiance dans la decision','0%','100%')
++'</div>'
++'<div class="f mt"><label>Justification</label><textarea name="justification" rows="3"></textarea></div>'
++'<div class="f mt2"><label>Ce qui aurait pu changer ma decision</label><input type="text" name="ce_qui_aurait_pu_changer_ma_decision"></div>'
++'</div></div>'
+
++'<div class="ff"><button type="button" class="btn btn-p btn-save" onclick="save(\'reasoning\')">&#128190; Commit Raisonnement</button>'
++'<div class="fh">\uD83D\uDCBE ID g\u00e9n\u00e9r\u00e9 depuis le titre · Ctrl+Enter pour sauvegarder</div></div>'
++'</form>';};
+
+// ── 4. REASONING FOLLOWUP (delta) ─────────────────────────────────────
+FORMS.reasoning_followup=function(){return '<form id="active-form">'
++'<div class="card"><div class="card-hd"><span class="ci">&#128301;</span>'
++'<div><h3>Suivi Raisonnement</h3><div class="cs">Delta \u0394 \u00b7 enrichit un raisonnement existant</div></div>'
++'<span class="ev-badge delta">\u0394 DELTA</span></div>'
++'<div class="card-body">'
++ACID('_target_id','ID du raisonnement cible <span class="req">*</span>','reasonings','rsn_YYYYMMDD_XXXX')
++'<p style="font-size:11px;color:var(--t3);margin-top:6px;font-family:var(--mono)">Retrouve cet ID dans le log de sauvegarde du raisonnement initial.</p>'
++'</div></div>'
+
++'<div class="card"><div class="card-hd"><span class="ci">&#127919;</span><div><h3>Resultat</h3></div></div>'
++'<div class="card-body"><div class="dv-l past">PREVU AU MOMENT DE LA DECISION</div>'
++'<p style="font-size:12px;color:var(--t3);margin-bottom:12px">Rappelle-toi de ce que tu avais predit.</p>'
++'<div class="dv-l now" style="margin-top:16px">MAINTENANT (le reel)</div>'
++'<div class="now-block"><div class="fg g1">'
++'<div class="f"><label>Resultat effectif</label><textarea name="suivi.resultat_effectif" rows="3" autofocus placeholder="Ce qui s\'est reellement passe..."></textarea></div>'
++'<div class="f"><label>Ce qui ne s\'est pas passe comme prevu</label><textarea name="suivi.ecart" rows="2"></textarea></div>'
++'<div class="f"><label>Lecon apprise</label><input type="text" name="suivi.lecon"></div>'
++'</div></div>'
++'<div class="fg mt">'
++SL('suivi.qualite_du_raisonnement',0,10,1,0,'Qualite du raisonnement (retro)','Desastre','Parfait')
++SL('suivi.confiance_apres',0,1,.05,.5,'Confiance apres coup','0%','100%')
++'</div>'
++'<div class="f mt"><label>Date de suivi</label><input type="date" name="suivi.date_suivi" value="'+TODAY+'"></div>'
++'</div></div>'
+
++'<div class="ff"><button type="button" class="btn btn-p btn-save" onclick="save(\'reasoning_followup\')">&#128190; Commit Suivi</button>'
++'<div class="fh">\u0394 Delta \u2014 lie au raisonnement initial</div></div>'
++'</form>';};
+
+// ── 5. PREDICTION (genesis) ───────────────────────────────────────────
+FORMS.prediction=function(){
+  return '<form id="active-form">'
++'<input type="hidden" name="_id" id="pred-id-hidden" value="">'
++'<div class="card"><div class="card-hd"><span class="ci">&#127919;</span>'
++'<div><h3>Prediction</h3><div class="cs">S0 Genesis \u00b7 cree l\'entite pred</div></div>'
++'<span class="ev-badge genesis">GENESIS</span></div>'
++'<div class="card-body">'
++'<div class="f full"><label>Titre court (g\u00e9n\u00e8re l\'ID) <span class="req">*</span></label>'
++'<input type="text" name="titre" autofocus placeholder="Ex: GPT5 release 2026, Projet arcade termine Q1..."'
++' oninput="slugUpdate(this,\'pred\',\'predictions\',\'pred-id-disp\')"></div>'
++'<div class="f full mt2"><label>ID g\u00e9n\u00e9r\u00e9</label>'
++'<input type="text" id="pred-id-disp" class="mono-field" readonly placeholder="Type un titre..."'
++' style="color:var(--cyan);background:rgba(34,211,238,.06);border-color:rgba(34,211,238,.2)"></div>'
++'<div class="f mt"><label>Enonce FALSIFIABLE <span class="req">*</span></label>'
++'<textarea name="enonce" rows="3" autofocus placeholder="La startup X leve des fonds avant le 31/12/2025.&#10;GPT-5 sort avant juin 2026."></textarea></div>'
++'<div class="f mt"><label>Conditions de resolution (comment savoir si vrai ou faux)</label>'
++'<input type="text" name="conditions_resolution" placeholder="Annonce officielle publiee..."></div>'
++'<div class="fg mt">'
++SEL('domaine','Domaine',DOMS)
++'<div class="f"><label>Date resolution prevue</label><input type="date" name="date_resolution_prevue"></div>'
++'</div></div></div>'
+
++'<div class="card"><div class="card-hd"><span class="ci">&#128202;</span><div><h3>Estimation</h3></div></div>'
++'<div class="card-body">'
++SL('probabilite',0,1,.05,.5,'Probabilite que ce soit VRAI','Impossible 0%','Certain 100%')
++'<div class="mt">'+SL('confiance_dans_estimation',0,1,.05,.6,'Confiance dans mon estimation','Pas du tout','Tres sur')+'</div>'
++'</div></div>'
+
++'<div class="card"><div class="card-hd"><span class="ci">&#128161;</span><div><h3>Raisonnement</h3></div></div>'
++'<div class="card-body"><div class="fg g1">'
++DL('arguments_pour','Arguments pour','Un argument pour...')
++DL('arguments_contre','Arguments contre','Un argument contre...')
++DL('hypotheses_sous_jacentes','Hypotheses sous-jacentes','Une hypothese...')
++'</div></div></div>'
+
++'<div class="ff"><button type="button" class="btn btn-p btn-save" onclick="save(\'prediction\')">&#128190; Commit Prediction</button>'
++'<div class="fh">\uD83D\uDCBE ID g\u00e9n\u00e9r\u00e9 depuis le titre · garde-le pour la r\u00e9solution</div></div>'
++'</form>';};
+
+// ── 6. PREDICTION RESOLUTION (delta) ─────────────────────────────────
+FORMS.prediction_resolution=function(){return '<form id="active-form">'
++'<div class="card"><div class="card-hd"><span class="ci">&#127937;</span>'
++'<div><h3>Resolution Prediction</h3><div class="cs">Delta \u0394</div></div>'
++'<span class="ev-badge delta">\u0394 DELTA</span></div>'
++'<div class="card-body">'
++ACID('_target_id','ID de la prediction a resoudre <span class="req">*</span>','predictions','pred_YYYYMMDD_XXXX')
++'</div></div>'
+
++'<div class="card"><div class="card-hd"><span class="ci">&#9989;</span><div><h3>Resultat</h3></div></div>'
++'<div class="card-body"><div class="now-block"><div class="fg">'
++SEL('resultat','Resultat <span class="req">*</span>',['vrai','faux','partiel','ambigu','non_resoluble'])
++'<div class="f"><label>Date resolution effective</label><input type="date" name="date_resolution" value="'+TODAY+'"></div>'
++SL('probabilite_effective',0,1,.05,.5,'Probabilite reelle (avec le recul)','0%','100%')
++SEL('calibration','Calibration',['bien_calibre','trop_confiant','pas_assez_confiant','ambigu'])
++'</div>'
++'<div class="f mt"><label>Detail du resultat</label><textarea name="resultat_detail" rows="2" autofocus></textarea></div>'
++'<div class="f mt2"><label>Lecon sur ta calibration</label><input type="text" name="lecon" placeholder="Etais-tu trop confiant ?"></div>'
++'</div></div></div>'
+
++'<div class="ff"><button type="button" class="btn btn-p btn-save" onclick="save(\'prediction_resolution\')">&#128190; Cloturer Prediction</button>'
++'</div></form>';};
+
+// ── 7. BELIEF (genesis) ───────────────────────────────────────────────
+FORMS.belief=function(){
+  return '<form id="active-form">'
++'<input type="hidden" name="_id" id="belief-id-hidden" value="">'
++'<div class="card"><div class="card-hd"><span class="ci">&#128161;</span>'
++'<div><h3>Croyance</h3><div class="cs">S0 Genesis \u00b7 etablit une croyance a l\'instant T</div></div>'
++'<span class="ev-badge genesis">GENESIS</span></div>'
++'<div class="card-body">'
++'<div class="f full"><label>Topic / Titre (g\u00e9n\u00e8re l\'ID) <span class="req">*</span></label>'
++'<input type="text" name="topic" autofocus placeholder="Ex: efficacite du jeune intermittent, role de l\'IA..."'
++' oninput="slugUpdate(this,\'belief\',\'beliefs\',\'belief-id-disp\')"></div>'
++'<div class="f full mt2"><label>ID g\u00e9n\u00e9r\u00e9</label>'
++'<input type="text" id="belief-id-disp" class="mono-field" readonly placeholder="Type un topic..."'
++' style="color:var(--cyan);background:rgba(34,211,238,.06);border-color:rgba(34,211,238,.2)"></div>'
++'<div class="fg mt">'
++SEL('domaine','Domaine',DOMS)
++'</div></div></div>'
+
++'<div class="card"><div class="card-hd"><span class="ci">&#128270;</span><div><h3>La Croyance a l\'instant T</h3></div></div>'
++'<div class="card-body"><div class="now-block">'
++'<div class="f"><label>Croyance <span class="req">*</span></label>'
++'<textarea name="croyance.enonce" rows="3" placeholder="Ce que tu crois maintenant, dans tes mots..."></textarea></div>'
++SL('croyance.confiance',0,1,.05,.6,'Confiance','0%','100%')
++'<div class="f mt"><label>Depuis quand tu crois ca</label><input type="text" name="croyance.depuis" placeholder="Depuis toujours, depuis 2020..."></div>'
++'<div class="f mt2"><label>Origine de cette croyance</label><input type="text" name="croyance.origine" placeholder="Experience personnelle, lecture, conseils de..."></div>'
++'</div></div></div>'
+
++'<div class="card"><div class="card-hd"><span class="ci">&#128203;</span><div><h3>Evidence et implications</h3></div></div>'
++'<div class="card-body"><div class="fg g1">'
++DL('evidence_pour','Evidence pour (arguments qui la soutiennent)','Un argument...')
++DL('evidence_contre','Evidence contre (ce qui la questionne)','Un contre-argument...')
++DL('implications_comportementales','Implications comportementales (ce que ca change dans ta vie)','Une implication...')
++'</div></div></div>'
+
++'<div class="ff"><button type="button" class="btn btn-p btn-save" onclick="save(\'belief\')">&#128190; Commit Croyance</button>'
++'<div class="fh">\uD83D\uDCBE ID g\u00e9n\u00e9r\u00e9 depuis le topic</div></div>'
++'</form>';};
+
+// ── 8. BELIEF UPDATE (delta) ──────────────────────────────────────────
+FORMS.belief_update=function(){return '<form id="active-form">'
++'<div class="card"><div class="card-hd"><span class="ci">&#128260;</span>'
++'<div><h3>Update Croyance</h3><div class="cs">Delta \u0394 \u00b7 evolution d\'une croyance existante</div></div>'
++'<span class="ev-badge delta">\u0394 DELTA</span></div>'
++'<div class="card-body">'
++ACID('_target_id','ID de la croyance cible <span class="req">*</span>','beliefs','belief_YYYYMMDD_XXXX')
++'<div class="fg mt">'
++SEL('type_changement','Type de changement',['revirement_complet','nuance','renforcement','abandon','formation_nouvelle'])
++SEL('type_declencheur','Declencheur',['experience','lecture','discussion','reflexion','evenement','donnee_empirique'])
++'</div></div></div>'
+
++'<div class="card"><div class="card-hd"><span class="ci">&#8596;&#65039;</span><div><h3>L\'Evolution</h3></div></div>'
++'<div class="card-body">'
++'<div class="dv-l past">AVANT</div>'
++'<div class="remind-box">'
++'<div class="remind-hd">&#9679; Rappelle-toi ce que tu croyais</div>'
++'<div class="remind-chips">'
++'<span class="remind-chip">&#10022; Ta croyance exacte</span>'
++'<span class="remind-chip">&#10022; Ton niveau de confiance (0 \u00e0 1)</span>'
++'<span class="remind-chip">&#10022; Depuis quand tu croyais \u00e7a</span>'
++'<span class="remind-chip">&#10022; L\'origine de cette croyance</span>'
++'</div>'
++'<p class="remind-note">Architecture ZK \u00b7 le contenu genesis n\'est pas rechargeable depuis le serveur \u00b7 fais appel \u00e0 ta m\u00e9moire</p>'
++'</div>'
++'<div class="dv-l now" style="margin-top:4px">MAINTENANT</div>'
++'<div class="now-block">'
++'<div class="f"><label>Croyance apres <span class="req">*</span></label><textarea name="apres.croyance" rows="2"></textarea></div>'
++SL('apres.confiance',0,1,.05,.75,'Confiance apres','0%','100%')
++'</div>'
++'<div class="f mt"><label>Declencheur (titre court)</label><input type="text" name="declencheur" placeholder="Lecture du livre X, conversation avec Y..."></div>'
++'<div class="f mt2"><label>Description complete</label><textarea name="description_complete" rows="3"></textarea></div>'
++'<div class="fg mt">'
++SL('resistance_initiale',0,10,1,3,'Resistance initiale','Aucune','Extreme',true)
++SL('importance',0,10,1,5,'Importance de ce changement','Mineure','Fondamentale')
++'</div></div></div>'
+
++'<div class="ff"><button type="button" class="btn btn-p btn-save" onclick="save(\'belief_update\')">&#128190; Commit Update Croyance</button>'
++'</div></form>';};
+
+// ── 9. KNOWLEDGE NODE ─────────────────────────────────────────────────
+FORMS.knowledge_node=function(){return '<form id="active-form">'
++'<div class="card"><div class="card-hd"><span class="ci">&#127991;</span>'
++'<div><h3>Connaissance</h3><div class="cs">S0 Genesis ou update \u2014 le concept est l\'ID</div></div>'
++'<span class="ev-badge genesis">GENESIS</span></div>'
++'<div class="card-body"><div class="fg">'
++'<input type="hidden" name="_id" id="kn-id-hidden" value="">'
++'<div class="f full"><label>Concept — ID court <span class="req">*</span> (MAJUSCULES, underscores)</label>'
++'<input type="text" name="concept" autofocus class="mono-field" placeholder="RAID5, ZFS, SQUEEZE_BRIDGE, BAYES..."'
++' oninput="this.value=this.value.toUpperCase().replace(/\\s/g,\'_\');knIdUpdate(this)"></div>'
++'<div class="f full mt2"><label>ID complet dans la base</label>'
++'<input type="text" id="kn-id-disp" class="mono-field id-disp" readonly placeholder="kn_..."></div>'
++SEL('domaine','Domaine',DOMS)
++SEL('type_connaissance','Type',['concept','technique','procedure','fait','theorie','outil','pattern','framework'])
++'<div class="f"><label>Derniere pratique</label><input type="date" name="derniere_pratique" value="'+TODAY+'"></div>'
++SEL('frequence_usage','Frequence usage',FREQS)
++'</div><div class="fg mt">'
++SL('knowledge_level',0,10,1,3,'Niveau de maitrise','Ignorance','Expert mondial')
++SL('confiance',0,1,.05,.6,'Confiance dans ta maitrise','0%','100%')
++'</div></div></div>'
+
++'<div class="card"><div class="card-hd"><span class="ci">&#128161;</span><div><h3>Ta Comprehension</h3></div></div>'
++'<div class="card-body">'
++'<div class="f"><label>Definition personnelle (DANS TES PROPRES MOTS - pas Wikipedia)</label>'
++'<textarea name="definition_personnelle" rows="4" placeholder="Comment TOI tu comprends ce concept, avec tes analogies..."></textarea></div>'
++'<div class="fg g1 mt">'
++DL('subtilites_maitrisees','Ce que tu comprends en profondeur','Une subtilite...')
++DL('zones_d_ombre','Ce qui reste flou','Une zone d\'ombre...')
++DL('erreurs_typiques_commises','Erreurs typiques que tu as commises','Une erreur...')
++DL('cas_pieges','Cas pieges','Un cas piege...')
++'</div></div></div>'
+
++'<div class="card"><div class="card-hd"><span class="ci">&#128279;</span><div><h3>Graphe de Connaissances</h3></div></div>'
++'<div class="card-body">'
++TIA('prerequis','Pr\u00e9requis (kn_ \u00e0 ma\u00eeteriser avant)','concepts','kn_NOM + Entr\u00e9e')
++'<div class="mt2">'+TIA('concepts_lies','Concepts li\u00e9s au m\u00eame niveau','concepts','kn_NOM + Entr\u00e9e')+'</div>'
++'<div class="mt2">'+TIA('applications_dans_projets','Projets o\u00f9 appliqu\u00e9','projects','nom_projet + Entr\u00e9e')+'</div>'
++'</div></div>'
+
++'<div class="card"><div class="card-hd"><span class="ci">&#128218;</span><div><h3>Source principale</h3></div></div>'
++'<div class="card-body"><div class="fg">'
++SEL('source.type','Type',['doc_officielle','livre','cours','experience','personne','video','article','forum'])
++'<div class="f"><label>Titre / URL</label><input type="text" name="source.titre"></div>'
++SL('source.impact',0,10,1,5,'Impact de cette source','Nul','Fondateur')
++'</div></div></div>'
+
++'<div class="ff"><button type="button" class="btn btn-p btn-save" onclick="save(\'knowledge_node\')">&#128190; Commit Connaissance</button>'
++'<div class="fh">L\'ID = le concept (ex: kn_RAID5)</div></div>'
++'</form>';};
+
+// ── 10. PROJECT (genesis) ─────────────────────────────────────────────
+FORMS.project=function(){return '<form id="active-form">'
++'<div class="card"><div class="card-hd"><span class="ci">&#128640;</span>'
++'<div><h3>Nouveau Projet</h3><div class="cs">S0 Genesis \u00b7 l\'ID projet est la cle de tout</div></div>'
++'<span class="ev-badge genesis">GENESIS</span></div>'
++'<div class="card-body"><div class="fg">'
++'<input type="hidden" name="_id" id="proj-id-hidden" value="">'
++'<div class="f"><label>Nom du projet <span class="req">*</span></label>'
++'<input type="text" name="nom" autofocus placeholder="Borne arcade, Digital Twin..."'
++' oninput="projIdUpdate(this)"></div>'
++'<div class="f"><label>ID projet (auto-g\u00e9n\u00e9r\u00e9, cl\u00e9 de tous les deltas)</label>'
++'<input type="text" name="project_id" id="proj-id-disp" class="mono-field id-disp" readonly'
++' placeholder="auto depuis le nom..."></div>'
++SEL('domaine','Domaine',DOMS)
++SEL('type','Type',['personnel','professionnel','apprentissage','loisir','side_project','recherche'])
++SEL('statut','Statut initial',['idee','planification','en_cours'],'en_cours')
++SL('priorite',0,10,1,5,'Priorite','Nulle','Critique')
++'</div></div></div>'
+
++'<div class="card"><div class="card-hd"><span class="ci">&#128161;</span><div><h3>Vision</h3></div></div>'
++'<div class="card-body"><div class="fg g1">'
++'<div class="f"><label>Description courte (1-2 phrases)</label><input type="text" name="description_courte"></div>'
++'<div class="f"><label>Motivation initiale</label><textarea name="motivation_initiale" rows="2" placeholder="Pourquoi ce projet ?"></textarea></div>'
++'<div class="f"><label>Vision finale</label><textarea name="vision_finale" rows="2"></textarea></div>'
++'<div class="f"><label>Probleme resolu</label><input type="text" name="probleme_resolu"></div>'
++DL('objectifs','Objectifs mesurables','Un objectif + critere de succes...')
++'</div></div></div>'
+
++'<div class="card"><div class="card-hd"><span class="ci">&#128295;</span><div><h3>Ressources</h3></div></div>'
++'<div class="card-body"><div class="fg">'
++'<div class="f"><label>Budget prevu (euros)</label><input type="number" name="budget.prevu_eur" value="0" min="0"></div>'
++'<div class="f"><label>Deja depense (euros)</label><input type="number" name="budget.depense_eur" value="0" min="0"></div>'
++'</div>'
++TI('logiciels_utilises','Outils et logiciels','outil + Entree')
++'<div class="mt2">'+TI('skills_utilises','Competences mobilisees (kn_)','kn_NOM + Entree')+'</div>'
++'</div></div>'
+
++'<div class="ff"><button type="button" class="btn btn-p btn-save" onclick="save(\'project\')">&#128190; Commit Projet</button>'
++'<div class="fh">L\'ID projet est la cle de toutes les sessions et updates</div></div>'
++'</form>';};
+
+// ── 11. PROJECT LOG (delta) ───────────────────────────────────────────
+FORMS.project_log=function(){return '<form id="active-form">'
++'<div class="card"><div class="card-hd"><span class="ci">&#128193;</span>'
++'<div><h3>Session Projet</h3><div class="cs">Delta \u0394 \u00b7 log de session de travail</div></div>'
++'<span class="ev-badge delta">\u0394 DELTA</span></div>'
++'<div class="card-body">'
++ACID('_target_id','Projet cible <span class="req">*</span>','projects','arcade, digital_twin...')
++'<div class="fg mt">'
++'<div class="f"><label>Duree (minutes)</label><input type="number" name="duree_minutes" value="60" min="1"></div>'
++'<div class="f"><label>Date</label><input type="date" name="date" value="'+TODAY+'"></div>'
++'</div></div></div>'
+
++'<div class="card"><div class="card-hd"><span class="ci">&#9889;</span><div><h3>Etat pendant la session</h3></div></div>'
++'<div class="card-body"><div class="fg">'
++SL('physique_pendant.energie',0,10,1,7,'Energie','Epuise','Plein energie')
++SL('physique_pendant.humeur',0,10,1,7,'Humeur','Mauvaise','Excellente')
++SL('physique_pendant.concentration',0,10,1,7,'Concentration','Nulle','Laser')
++'</div></div></div>'
+
++'<div class="card"><div class="card-hd"><span class="ci">&#9989;</span><div><h3>Contenu</h3></div></div>'
++'<div class="card-body"><div class="fg g1">'
++DL('accompli','Accompli','Ce que tu as fait...')
++DL('appris','Appris','Ce que tu as appris...')
++DL('problemes','Problemes rencontres','Un probleme...')
++'</div></div></div>'
+
++'<div class="card"><div class="card-hd"><span class="ci">&#128302;</span><div><h3>Suite</h3></div></div>'
++'<div class="card-body">'
++SL('etat_apres.pourcentage',0,100,1,20,'Progression totale (%)','0%','100%')
++'<div class="f mt"><label>Prochaine session - que faire ?</label>'
++'<textarea name="etat_apres.prochaine_session" rows="2"></textarea></div>'
++'<div class="f mt2"><label>Notes libres</label><textarea name="notes_libres" rows="2"></textarea></div>'
++'</div></div>'
+
++'<div class="ff"><button type="button" class="btn btn-p btn-save" onclick="save(\'project_log\')">&#128190; Commit Session</button>'
++'</div></form>';};
+
+// ── 12. PROJECT UPDATE (delta statut) ─────────────────────────────────
+FORMS.project_update=function(){return '<form id="active-form">'
++'<div class="card"><div class="card-hd"><span class="ci">&#128295;</span>'
++'<div><h3>Statut Projet</h3><div class="cs">Delta \u0394 \u00b7 changement de statut ou milestone</div></div>'
++'<span class="ev-badge delta">\u0394 DELTA</span></div>'
++'<div class="card-body">'
++ACID('_target_id','Projet cible <span class="req">*</span>','projects','arcade...')
++'<div class="fg mt">'
++SEL('nouveau_statut','Nouveau statut',['idee','planification','en_cours','en_pause','suspendu','termine','abandonne'])
++SL('pourcentage_estime',0,100,1,0,'Progression estimee (%)','0%','100%')
++'</div></div></div>'
+
++'<div class="card"><div class="card-hd"><span class="ci">&#128203;</span><div><h3>Contexte du changement</h3></div></div>'
++'<div class="card-body"><div class="fg g1">'
++'<div class="f"><label>Raison du changement de statut</label><textarea name="raison" rows="2" autofocus></textarea></div>'
++'<div class="f"><label>Prochaines etapes</label><textarea name="prochaines_etapes" rows="2"></textarea></div>'
++DL('bloquants','Bloquants actuels','Un bloquant...')
++DL('milestones_atteints','Milestones atteints','Un milestone...')
++'</div></div></div>'
+
++'<div class="ff"><button type="button" class="btn btn-p btn-save" onclick="save(\'project_update\')">&#128190; Commit Statut</button>'
++'</div></form>';};
+
+// ── 13. PERSON (genesis) ─────────────────────────────────────────────
+FORMS.person=function(){return '<form id="active-form">'
++'<div class="card"><div class="card-hd"><span class="ci">&#129434;</span>'
++'<div><h3>Nouvelle Personne</h3><div class="cs">S0 Genesis \u00b7 l\'ID person est la cle</div></div>'
++'<span class="ev-badge genesis">GENESIS</span></div>'
++'<div class="card-body"><div class="fg">'
++'<div class="f"><label>Pr\u00e9nom</label><input type="text" name="prenom" autofocus oninput="personIdSync()"></div>'
++'<div class="f"><label>Nom</label><input type="text" name="nom" oninput="personIdSync()"></div>'
++'<div class="f"><label>ID personne (auto-g\u00e9n\u00e9r\u00e9 \u2014 immuable)</label>'
++'<input type="text" name="person_id" class="mono-field id-disp person-id-field" readonly'
++' placeholder="p_prenom_nom (se remplit automatiquement)"></div>'
++'<div class="f"><label>Age approx</label><input type="number" name="age_approx" min="0" max="120"></div>'
++'<div class="f"><label>Profession</label><input type="text" name="profession"></div>'
++'<div class="f"><label>Localisation</label><input type="text" name="localisation"></div>'
++'</div></div></div>'
+
++'<div class="card"><div class="card-hd"><span class="ci">&#129309;</span><div><h3>La Relation</h3></div></div>'
++'<div class="card-body"><div class="fg">'
++SEL('type_relation','Type',['famille','ami','collegue','mentor','connaissance','rival','ex','partenaire_pro'])
++'<div class="f"><label>Sous-type</label><input type="text" name="sous_type" placeholder="frere, meilleur ami..."></div>'
++'<div class="f"><label>Depuis</label><input type="text" name="depuis" placeholder="2015, lycee..."></div>'
++'</div><div class="fg mt">'
++SL('importance',0,10,1,5,'Importance dans ta vie','Nulle','Centrale')
++SL('confiance',0,10,1,5,'Confiance','Aucune','Absolue')
++SL('influence',0,10,1,3,'Influence sur toi','Aucune','Tres forte')
++SL('affection',0,10,1,5,'Affection','Nulle','Maximale')
++'</div></div></div>'
+
++'<div class="card"><div class="card-hd"><span class="ci">&#128214;</span><div><h3>Description</h3></div></div>'
++'<div class="card-body">'
++'<div class="f"><label>Qui est cette personne</label><textarea name="description" rows="3"></textarea></div>'
++'<div class="f mt2"><label>Personnalite percue</label><input type="text" name="personnalite_percue"></div>'
++'<div class="fg g1 mt">'
++DL('ce_que_je_lui_dois','Ce que tu lui dois (competences, perspectives...)','Un apport...')
++DL('lecons_apprises_via_eux','Lecons apprises via cette personne','Une lecon...')
++'</div></div></div>'
+
++'<div class="ff"><button type="button" class="btn btn-p btn-save" onclick="save(\'person\')">&#128190; Commit Personne</button>'
++'<div class="fh">L\'ID = p_prenom_nom (cle de tous les updates relationnels)</div></div>'
++'</form>';};
+
+// ── 14. RELATIONSHIP UPDATE (delta) ───────────────────────────────────
+FORMS.relationship_update=function(){return '<form id="active-form">'
++'<div class="card"><div class="card-hd"><span class="ci">&#128101;</span>'
++'<div><h3>Update Relation</h3><div class="cs">Delta \u0394</div></div>'
++'<span class="ev-badge delta">\u0394 DELTA</span></div>'
++'<div class="card-body">'
++ACID('_target_id','Personne ciblee <span class="req">*</span>','persons','p_prenom_nom')
++SEL('type_changement','Type de changement',['confiance','affection','frequence','tension','rupture','reconciliation','decouverte','renforcement','refroidissement'])
++'<div class="f mt"><label>Description</label><textarea name="description" rows="2" autofocus></textarea></div>'
++'</div></div>'
+
++'<div class="card"><div class="card-hd"><span class="ci">&#128200;</span><div><h3>Evolution des scores</h3></div></div>'
++'<div class="card-body">'
++'<div class="dv-l past">AVANT</div>'
++'<div class="remind-box">'
++'<div class="remind-hd">&#9679; Rappelle-toi l\'\u00e9tat de la relation</div>'
++'<div class="remind-chips">'
++'<span class="remind-chip">&#10022; Importance dans ta vie (/10)</span>'
++'<span class="remind-chip">&#10022; Confiance (/10)</span>'
++'<span class="remind-chip">&#10022; Affection (/10)</span>'
++'<span class="remind-chip">&#10022; Statut (actif / dormant / tendu...)</span>'
++'<span class="remind-chip">&#10022; Fr\u00e9quence de contact</span>'
++'</div>'
++'<p class="remind-note">Architecture ZK \u00b7 non rechargeable depuis le serveur \u00b7 fais appel \u00e0 ta m\u00e9moire</p>'
++'</div>'
++'<div class="dv-l now" style="margin-top:16px">MAINTENANT</div>'
++'<div class="now-block"><div class="fg">'
++SL('apres.importance',0,10,1,5,'Importance','Nulle','Centrale')
++SL('apres.confiance',0,10,1,5,'Confiance','Aucune','Absolue')
++SL('apres.affection',0,10,1,5,'Affection','Nulle','Maximale')
++SEL('apres.statut','Statut',['actif','dormant','tendu','rupture','decede'])
++'</div></div>'
++'</div></div>'
+
++'<div class="card"><div class="card-hd"><span class="ci">&#128161;</span><div><h3>Reflexion</h3></div></div>'
++'<div class="card-body"><div class="fg g1">'
++'<div class="f"><label>Ce que j\'ai compris</label><textarea name="ce_que_j_ai_compris" rows="2"></textarea></div>'
++'<div class="f"><label>Impact sur moi</label><textarea name="impact_sur_moi" rows="2"></textarea></div>'
++'</div></div></div>'
+
++'<div class="ff"><button type="button" class="btn btn-p btn-save" onclick="save(\'relationship_update\')">&#128190; Commit Relation</button>'
++'</div></form>';};
+
+// ── 15. WEEKLY REVIEW ─────────────────────────────────────────────────
+FORMS.weekly_review=function(){
+  var wn=Math.ceil((((now-new Date(now.getFullYear(),0,1))/86400000)+new Date(now.getFullYear(),0,1).getDay()+1)/7);
+  var week=now.getFullYear()+'-W'+String(wn).padStart(2,'0');
+  return '<form id="active-form">'
++'<div class="card"><div class="card-hd"><span class="ci">&#128197;</span>'
++'<div><h3>Weekly Review</h3></div><span class="ev-badge genesis">S0 \u00b7 hebdo</span></div>'
++'<div class="card-body"><div class="fg">'
++'<div class="f"><label>Semaine</label><input type="text" name="semaine" value="'+week+'" class="mono-field"></div>'
++'<div class="f"><label>Date fin</label><input type="date" name="date_fin" value="'+TODAY+'"></div>'
++SL('bilan.note_globale',0,10,1,6,'Note globale','Terrible','Parfaite')
++'</div><div class="f mt"><label>Resume libre</label><textarea name="bilan.resume" rows="3" autofocus></textarea></div>'
++'</div></div>'
+
++'<div class="card"><div class="card-hd"><span class="ci">&#128202;</span><div><h3>Moyennes</h3></div></div>'
++'<div class="card-body"><div class="fg">'
++SL('stats.energie_moyenne',0,10,.5,6,'Energie moy','0','10')
++SL('stats.humeur_moyenne',0,10,.5,6,'Humeur moy','0','10')
++SL('stats.stress_moyen',0,10,.5,4,'Stress moy','0','10',true)
++SL('stats.motivation_moyenne',0,10,.5,6,'Motivation moy','0','10')
++SL('stats.sommeil_moyen',0,12,.5,7.5,'Sommeil moy (h)','0h','12h')
++SL('stats.productivite_moyenne',0,10,.5,6,'Productivite moy','0','10')
++'<div class="f"><label>Sessions sport</label><input type="number" name="stats.sport_sessions" value="0" min="0" max="7"></div>'
++'</div></div></div>'
+
++'<div class="card"><div class="card-hd"><span class="ci">&#127919;</span><div><h3>Bilan</h3></div></div>'
++'<div class="card-body"><div class="fg g1">'
++DL('bilan.top_3_accomplissements','Top 3 accomplissements','')
++DL('bilan.top_3_frustrations','Top 3 frustrations','')
++DL('apprentissage.ce_que_jai_appris','Ce que j\'ai appris','')
++'</div></div></div>'
+
++'<div class="card"><div class="card-hd"><span class="ci">&#128302;</span><div><h3>Semaine prochaine</h3></div></div>'
++'<div class="card-body"><div class="fg g1">'
++DL('semaine_prochaine.intentions','Intentions','Une intention...')
++DL('semaine_prochaine.priorites','Priorites','')
++'</div><div class="f mt"><label>La chose absolument a faire</label>'
++'<input type="text" name="semaine_prochaine.un_truc_absolument"></div>'
++'</div></div>'
+
++'<div class="ff"><button type="button" class="btn btn-p btn-save" onclick="save(\'weekly_review\')">&#128190; Commit Weekly</button>'
++'</div></form>';};
+
+// ── 16. MONTHLY SNAPSHOT ─────────────────────────────────────────────
+FORMS.monthly_snapshot=function(){return '<form id="active-form">'
++'<div class="card"><div class="card-hd"><span class="ci">&#128248;</span>'
++'<div><h3>Snapshot Mensuel</h3></div><span class="ev-badge genesis">S0 \u00b7 mensuel</span></div>'
++'<div class="card-body"><div class="fg">'
++'<div class="f"><label>Mois (YYYY-MM)</label><input type="text" name="mois" value="'
++now.getFullYear()+'-'+pad(now.getMonth()+1)+'" autofocus class="mono-field"></div>'
++SL('note_globale',0,10,1,6,'Note globale du mois','Terrible','Excellent')
++SEL('emotion_dominante','Emotion dominante',EMOTS)
++'<div class="f"><label>Theme du mois</label><input type="text" name="theme_du_mois"></div>'
++'</div><div class="f mt"><label>Resume du mois</label><textarea name="resume_du_mois" rows="4"></textarea></div>'
++DL('top_3_moments','Top 3 moments du mois','Un moment...')
++'</div></div>'
+
++'<div class="card"><div class="card-hd"><span class="ci">&#128205;</span><div><h3>Situation de vie</h3></div></div>'
++'<div class="card-body"><div class="fg">'
++'<div class="f"><label>Ville</label><input type="text" name="situation.ville"></div>'
++'<div class="f"><label>Travail</label><input type="text" name="situation.travail"></div>'
++'<div class="f"><label>Sante</label><input type="text" name="situation.sante_generale"></div>'
++'<div class="f"><label>Finances</label><input type="text" name="situation.finances"></div>'
++SL('situation.energie_vie_globale',0,10,1,6,'Energie de vie globale','Survie','Epanouissement')
++'</div></div></div>'
+
++'<div class="card"><div class="card-hd"><span class="ci">&#129504;</span><div><h3>Personnalite perçue</h3></div></div>'
++'<div class="card-body"><div class="fg">'
++SL('big_five.ouverture',0,10,1,7,'Ouverture','Ferme','Tres ouvert')
++SL('big_five.conscienciosite',0,10,1,6,'Conscienciosite','Desordonne','Tres ordonne')
++SL('big_five.extraversion',0,10,1,5,'Extraversion','Introverti','Extraverti')
++SL('big_five.agreabilite',0,10,1,6,'Agreabilite','Conflictuel','Agreeable')
++SL('big_five.nevrosisme',0,10,1,4,'Nevrosisme','Stable','Anxieux',true)
++'</div></div></div>'
+
++'<div class="card"><div class="card-hd"><span class="ci">&#129390;</span><div><h3>Reflexion</h3></div></div>'
++'<div class="card-body"><div class="fg g1">'
++'<div class="f"><label>Reflexion libre</label><textarea name="reflexion_libre" rows="4"></textarea></div>'
++'<div class="f"><label>Ce que je garderais</label><input type="text" name="ce_que_je_garderais"></div>'
++'<div class="f"><label>Ce que je ferais differemment</label><input type="text" name="ce_que_je_ferais_differemment"></div>'
++'<div class="f"><label>Vs mois dernier</label><textarea name="comparaison.vs_mois_dernier" rows="2"></textarea></div>'
++DL('objectifs.court_terme','Objectifs court terme (1-3 mois)','Un objectif...')
++'</div></div></div>'
+
++'<div class="ff"><button type="button" class="btn btn-p btn-save" onclick="save(\'monthly_snapshot\')">&#128190; Commit Snapshot</button>'
++'</div></form>';};
+</script>
+</body>
+</html>
