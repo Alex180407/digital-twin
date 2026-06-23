@@ -24,4 +24,38 @@ Environment="DATA_DIR=/opt/digital-twin/data"
 Environment="PUBLIC_KEY_PATH=/opt/digital-twin/keys/public.pem"
 Environment="PORT=8000"
 
-# (Garde le reste de tes règles de sécurité ProtectSystem, ReadWritePaths, etc. intactes)
+# Redémarrage automatique
+Restart=on-failure
+RestartSec=10
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+# Sécurité renforcée
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=no
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+RemoveIPC=yes
+
+# Accès fichiers
+ReadWritePaths=/opt/digital-twin/data /opt/digital-twin/keys
+ReadOnlyPaths=/opt/digital-twin/backend /opt/digital-twin/static
+InaccessiblePaths=/root /home /boot
+
+# Limites ressources
+LimitNOFILE=65536
+MemoryMax=512M
+CPUQuota=50%
+
+[Install]
+WantedBy=multi-user.target
